@@ -1,0 +1,88 @@
+spring:
+  main:
+    banner-mode: "off"
+  application:
+    name: RoboLearn API
+
+  # PostgreSQL Configuration (Neon)
+  datasource:
+    url: YOUR_DATABASE_URL
+    username: YOUR_DATABASE_USERNAME
+    password: YOUR_DATABASE_PASSWORD
+    driver-class-name: org.postgresql.Driver
+
+  # JPA/Hibernate Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # MongoDB Configuration (Polyglot Persistence)
+  data:
+    mongodb:
+      uri: YOUR_MONGODB_URI
+
+  # Security Configuration
+  security:
+    user:
+      name: admin
+      password: admin123
+
+  # OpenAI Configuration (for AI Integration)
+  ai:
+    openai:
+      api-key: YOUR_OPENAI_API_KEY_HERE
+      chat:
+        options:
+          model: gpt-4
+          temperature: 0.7
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    admin:
+      fail-fast: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: robolearn-execution-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.robolearn.api.dto.request"
+
+# JWT Configuration
+jwt:
+  secret: "YOUR_JWT_SECRET"
+  expiration: 86400000 # 24 hours in milliseconds
+  refreshExpiration: 604800000 # 7 days in milliseconds
+
+# Server Configuration
+server:
+  port: 8080
+
+# Multipart File Upload
+spring.servlet.multipart:
+  enabled: true
+  max-file-size: 10MB
+  max-request-size: 10MB
+
+# Cloudinary Configuration
+cloudinary:
+  cloud-name: YOUR_CLOUDINARY_NAME
+  api-key: YOUR_CLOUDINARY_API_KEY
+  api-secret: YOUR_CLOUDINARY_API_SECRET
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.robolearn: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "[%d{yyyy-MM-dd HH:mm:ss}] [%thread] %-5level %logger{36} - %msg%n"

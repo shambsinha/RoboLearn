@@ -1,0 +1,32 @@
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Backend
+robo-learn-backend/.gradle/
+robo-learn-backend/build/
+robo-learn-backend/out/
+
+# Frontend
+robo-learn-frontend/node_modules/
+robo-learn-frontend/dist/
+robo-learn-frontend/dist-ssr/
+robo-learn-frontend/.vite/
+robo-learn-frontend/coverage/
+
+# Logs and environment
+*.log
+.env
+.env.local
+.env.*.local
+
+# Databases
+db/
+*.db
