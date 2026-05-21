@@ -26,7 +26,6 @@ dependency-reduced-pom.xml
 
 # Gradle
 .gradle/
-gradle/
 build/
 
 # Environment
