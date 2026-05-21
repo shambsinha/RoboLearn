@@ -134,6 +134,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Dotenv support for local environment variables
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
     // Cloudinary SDK
     implementation 'com.cloudinary:cloudinary-http44:1.36.0'
 
