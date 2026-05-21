@@ -6,9 +6,9 @@ spring:
 
   # PostgreSQL Configuration (Neon)
   datasource:
-    url: YOUR_DATABASE_URL
-    username: YOUR_DATABASE_USERNAME
-    password: YOUR_DATABASE_PASSWORD
+    url: ${DATABASE_URL:YOUR_DATABASE_URL}
+    username: ${DATABASE_USERNAME:YOUR_DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD:YOUR_DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   # JPA/Hibernate Configuration
@@ -23,7 +23,7 @@ spring:
   # MongoDB Configuration (Polyglot Persistence)
   data:
     mongodb:
-      uri: YOUR_MONGODB_URI
+      uri: ${MONGODB_URI:YOUR_MONGODB_URI}
 
   # Security Configuration
   security:
@@ -34,7 +34,7 @@ spring:
   # OpenAI Configuration (for AI Integration)
   ai:
     openai:
-      api-key: YOUR_OPENAI_API_KEY_HERE
+      api-key: ${OPENAI_API_KEY:YOUR_OPENAI_API_KEY}
       chat:
         options:
           model: gpt-4
@@ -58,7 +58,7 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: "YOUR_JWT_SECRET"
+  secret: ${JWT_SECRET:YOUR_JWT_SECRET}
   expiration: 86400000 # 24 hours in milliseconds
   refreshExpiration: 604800000 # 7 days in milliseconds
 
@@ -74,9 +74,9 @@ spring.servlet.multipart:
 
 # Cloudinary Configuration
 cloudinary:
-  cloud-name: YOUR_CLOUDINARY_NAME
-  api-key: YOUR_CLOUDINARY_API_KEY
-  api-secret: YOUR_CLOUDINARY_API_SECRET
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:YOUR_CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY:YOUR_CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET:YOUR_CLOUDINARY_API_SECRET}
 
 # Logging Configuration
 logging:
