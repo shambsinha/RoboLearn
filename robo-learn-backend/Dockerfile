@@ -1,15 +1,15 @@
-# Build stage using a full Gradle image to avoid wrapper issues
+# Build stage using a full Gradle image
 FROM gradle:8.5-jdk17 AS build
 WORKDIR /app
-# Copy only the files needed for the build
 COPY . .
-# Run gradle build directly
 RUN gradle bootJar --no-daemon
 
 # Run stage
 FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
-# Copy the jar from the build stage
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Memory optimization for Render's 512MB limit
+# -Xmx384m: Limits heap size to 384MB
+# -Xss256k: Reduces stack size per thread to save memory
+ENTRYPOINT ["java", "-Xmx384m", "-Xss256k", "-jar", "app.jar"]

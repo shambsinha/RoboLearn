@@ -16,9 +16,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+    # Removed explicit dialect as Hibernate 6 auto-detects it correctly now
 
   # MongoDB Configuration (Polyglot Persistence)
   data:
