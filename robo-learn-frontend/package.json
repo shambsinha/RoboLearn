@@ -22,6 +22,7 @@
     "quill-image-resize-module-react": "^3.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-easy-crop": "^5.5.7",
     "react-hot-toast": "^2.6.0",
     "react-parallax-tilt": "^1.7.326",
     "react-quill": "^2.0.0",

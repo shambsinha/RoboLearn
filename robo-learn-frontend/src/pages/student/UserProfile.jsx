@@ -11,6 +11,7 @@ import useAuthStore from '../../store/useAuthStore';
 import toast from 'react-hot-toast';
 import { format, subDays, parseISO } from 'date-fns';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import Cropper from 'react-easy-crop';
 
 const fadeUp = (d = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -60,6 +61,45 @@ const DiffBar = ({ label, solved, total, color, barColor }) => {
   );
 };
 
+/* ── Image Crop Utilities ── */
+const createImage = (url) =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.addEventListener('load', () => resolve(image));
+    image.addEventListener('error', (error) => reject(error));
+    image.setAttribute('crossOrigin', 'anonymous');
+    image.src = url;
+  });
+
+const getCroppedImg = async (imageSrc, pixelCrop) => {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) return null;
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height,
+    0,
+    0,
+    pixelCrop.width,
+    pixelCrop.height
+  );
+
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(blob);
+    }, 'image/jpeg');
+  });
+};
+
 const UserProfile = () => {
   const { user } = useAuthStore();
   const [profile, setProfile] = useState(null);
@@ -68,6 +108,13 @@ const UserProfile = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
   const [editForm, setEditForm] = useState({});
+
+  // Cropping State
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
   useEffect(() => { fetchProfile(); }, []);
 
@@ -98,25 +145,48 @@ const UserProfile = () => {
     }
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingImage(true);
-    const formData = new FormData();
-    formData.append('image', file);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setImageToCrop(reader.result);
+      setShowCropper(true);
+    };
+  };
+
+  const onCropComplete = (croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  const handleUploadCroppedImage = async () => {
     try {
+      setUploadingImage(true);
+      setShowCropper(false);
+
+      const croppedImageBlob = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      const file = new File([croppedImageBlob], "profile-picture.jpg", { type: "image/jpeg" });
+
+      const formData = new FormData();
+      formData.append('image', file);
+
       const updatedProfile = await studentApi.uploadProfileImage(formData);
       setProfile(updatedProfile);
       setEditForm(prev => ({ ...prev, profilePictureUrl: updatedProfile.profilePictureUrl }));
       toast.success('Profile photo updated!');
+
       const currentUser = JSON.parse(localStorage.getItem('user')) || {};
       currentUser.profilePictureUrl = updatedProfile.profilePictureUrl;
       localStorage.setItem('user', JSON.stringify(currentUser));
       useAuthStore.setState({ user: currentUser });
-    } catch {
-      toast.error('Failed to upload image');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to process image');
     } finally {
       setUploadingImage(false);
+      setImageToCrop(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -552,6 +622,81 @@ const UserProfile = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* ══ IMAGE CROP MODAL ══ */}
+      {showCropper && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="stark-card w-full max-w-xl overflow-hidden bg-[#0a0e16]"
+          >
+            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+              <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                <Camera size={16} className="text-indigo-400" /> Adjust Profile Photo
+              </h3>
+              <button 
+                onClick={() => setShowCropper(false)}
+                className="p-2 hover:bg-white/[0.05] rounded-lg text-slate-500 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="relative h-80 bg-black">
+              <Cropper
+                image={imageToCrop}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+                cropShape="round"
+                showGrid={false}
+              />
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span>Zoom Level</span>
+                  <span>{Math.round(zoom * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-full h-1.5 bg-white/[0.05] rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleUploadCroppedImage}
+                  className="flex-1 btn-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]"
+                >
+                  Save Changes
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowCropper(false)}
+                  className="px-6 py-3 bg-white/[0.04] text-slate-400 border border-white/[0.06] rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/[0.08]"
+                >
+                  Cancel
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
