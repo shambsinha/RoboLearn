@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-  User, Mail, Camera, Edit2, Save, X, Trophy, Target,
+  Mail, Camera, Edit2, Save, X, Trophy,
   Github, Linkedin, Globe, Calendar as CalendarIcon, Hash, Loader,
   Flame, Code2, BookOpen, Award, CheckCircle2, Zap, ArrowUpRight,
-  Star, MapPin, Briefcase, Trash2
+  Star, Briefcase, Trash2
 } from 'lucide-react';
 import { studentApi } from '../../api/studentApi';
 import useAuthStore from '../../store/useAuthStore';
@@ -101,7 +101,6 @@ const getCroppedImg = async (imageSrc, pixelCrop) => {
 };
 
 const UserProfile = () => {
-  const { user } = useAuthStore();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -248,6 +247,22 @@ const UserProfile = () => {
   const today = new Date();
   const streakDatesStr = profile.streakDates || [];
   const attemptedDatesStr = profile.attemptedDates || [];
+
+  const achievements = [
+    { id: 'bronze-solver', title: 'Bronze Solver', desc: 'Solved 50 problems', criteria: profile.totalSolved >= 50, icon: <Trophy size={24} />, color: 'text-orange-500', glow: 'shadow-[0_0_15px_rgba(249,115,22,0.3)]' },
+    { id: 'silver-solver', title: 'Silver Solver', desc: 'Solved 100 problems', criteria: profile.totalSolved >= 100, icon: <Trophy size={24} />, color: 'text-slate-300', glow: 'shadow-[0_0_15px_rgba(203,213,225,0.3)]' },
+    { id: 'gold-solver', title: 'Gold Solver', desc: 'Solved 150 problems', criteria: profile.totalSolved >= 150, icon: <Trophy size={24} />, color: 'text-yellow-400', glow: 'shadow-[0_0_15px_rgba(250,204,21,0.3)]' },
+    { id: 'xp-bronze', title: 'Knowledge Seeker', desc: 'Earned 1,000 XP', criteria: (profile.xp || 0) >= 1000, icon: <Star size={24} />, color: 'text-blue-400', glow: 'shadow-[0_0_15px_rgba(96,165,250,0.3)]' },
+    { id: 'xp-silver', title: 'Neural Architect', desc: 'Earned 5,000 XP', criteria: (profile.xp || 0) >= 5000, icon: <Award size={24} />, color: 'text-purple-400', glow: 'shadow-[0_0_15px_rgba(192,132,252,0.3)]' },
+    { id: 'xp-gold', title: 'Logic Legend', desc: 'Earned 10,000 XP', criteria: (profile.xp || 0) >= 10000, icon: <Zap size={24} />, color: 'text-cyan-400', glow: 'shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
+  ];
+
+  const handleShareAchievement = (achievement) => {
+    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}`;
+    window.open(shareUrl, '_blank');
+    toast.success(`Share your ${achievement.title} trophy on LinkedIn!`);
+  };
+
   const calendarDays = Array.from({ length: 56 }).map((_, i) => {
     const d = subDays(today, 55 - i);
     const dateStr = format(d, 'yyyy-MM-dd');
@@ -622,6 +637,64 @@ const UserProfile = () => {
                 </a>
               </div>
             )}
+          </motion.div>
+
+          {/* ── ACHIEVEMENTS SECTION ── */}
+          <motion.div {...fadeUp(0.28)} className="glass-card p-6" style={{ background: 'rgba(12,18,30,0.9)' }}>
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+              <Trophy size={13} className="text-amber-400" /> Neural Achievements
+            </h3>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              {achievements.map((ach) => (
+                <div key={ach.id} className="group relative flex flex-col items-center text-center">
+                  {/* Trophy Icon Container */}
+                  <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-500 mb-4
+                    ${ach.criteria 
+                      ? `bg-white/[0.03] border border-white/[0.1] ${ach.glow} scale-100` 
+                      : 'bg-white/[0.01] border border-dashed border-white/[0.05] grayscale opacity-40 scale-95'}`}
+                  >
+                    <div className={`transition-all duration-700 ${ach.criteria ? ach.color : 'text-slate-600'}`}>
+                      {ach.icon}
+                    </div>
+                    {!ach.criteria && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Hash size={12} className="text-slate-700 opacity-50" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Text Info */}
+                  <h4 className={`text-xs font-black uppercase tracking-widest mb-1 ${ach.criteria ? 'text-white' : 'text-slate-600'}`}>
+                    {ach.title}
+                  </h4>
+                  <p className="text-[10px] font-medium text-slate-500 leading-tight mb-3">
+                    {ach.desc}
+                  </p>
+
+                  {/* Share Link */}
+                  {ach.criteria ? (
+                    <button 
+                      onClick={() => handleShareAchievement(ach)}
+                      className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                      <Linkedin size={10} /> Share Achievement
+                    </button>
+                  ) : (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-700">
+                      Locked
+                    </span>
+                  )}
+
+                  {/* Hover tooltip for locked ones */}
+                  {!ach.criteria && (
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-black border border-white/[0.1] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-nowrap">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Requirements not met</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </div>
