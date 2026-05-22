@@ -60,11 +60,12 @@ const LoginPage = () => {
 
         {/* Form */}
         <motion.div
-          className="stark-card p-8"
-          whileHover={{ boxShadow: '0 0 40px -8px rgba(99,102,241,0.2)' }}
+          className="electric-container electric-current rounded-2xl overflow-hidden"
+          whileHover={{ boxShadow: '0 0 48px -8px rgba(6,182,212,0.3)' }}
           transition={{ duration: 0.3 }}
         >
-          <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="stark-card p-8 border-none bg-[#0a1424]/90 backdrop-blur-xl">
+            <form className="space-y-5" onSubmit={handleSubmit}>
 
             {error && (
               <motion.div
@@ -121,8 +122,9 @@ const LoginPage = () => {
               disabled={loading}
               whileHover={{ scale: loading ? 1 : 1.02, y: loading ? 0 : -1 }}
               whileTap={{ scale: loading ? 1 : 0.98 }}
-              className="btn-primary w-full justify-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-electric btn-electric-primary w-full justify-center mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <span className="btn-electric-glow" />
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -136,6 +138,7 @@ const LoginPage = () => {
               )}
             </motion.button>
           </form>
+          </div>
         </motion.div>
 
         <p className="text-center text-slate-600 text-sm mt-6">

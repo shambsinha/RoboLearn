@@ -145,8 +145,9 @@ const StudentDashboard = () => {
             <motion.button
               whileHover={{ scale: 1.06, y: -2 }}
               whileTap={{ scale: 0.97 }}
-              className="px-8 py-3 bg-white text-indigo-600 rounded-full font-extrabold text-xs uppercase tracking-[0.1em] shadow-xl whitespace-nowrap cursor-pointer"
+              className="btn-electric btn-electric-primary px-8 py-3 rounded-full font-extrabold text-xs uppercase tracking-[0.1em] shadow-xl whitespace-nowrap cursor-pointer"
             >
+              <span className="btn-electric-glow" />
               Upgrade to Pro
             </motion.button>
           </div>
@@ -278,7 +279,8 @@ const StudentDashboard = () => {
           </div>
           
           <div className="relative z-10 shrink-0">
-            <Link to="/enterprise" className="btn-primary py-3 px-8 text-xs rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] bg-gradient-to-r from-cyan-500 to-indigo-500 border-none">
+            <Link to="/enterprise" className="btn-electric btn-electric-primary py-3 px-8 text-xs rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] bg-gradient-to-r from-cyan-500 to-indigo-500 border-none">
+              <span className="btn-electric-glow" />
               Explore Enterprise <ArrowRight size={14} />
             </Link>
           </div>

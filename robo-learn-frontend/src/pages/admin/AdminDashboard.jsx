@@ -54,8 +54,9 @@ const QuickActionCard = ({ title, description, icon, to, buttonText }) => (
     <p className="text-xs text-slate-400 leading-relaxed mb-6 flex-1">{description}</p>
     <Link 
       to={to} 
-      className="btn-primary w-full justify-center py-2.5 text-xs rounded-lg"
+      className="btn-electric btn-electric-primary w-full justify-center py-2.5 text-xs rounded-lg"
     >
+      <span className="btn-electric-glow" />
       {buttonText} <ChevronRight size={14} />
     </Link>
   </motion.div>
@@ -145,7 +146,8 @@ const AdminDashboard = () => {
                   </p>
                 </div>
               </div>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="px-6 py-3 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-xl font-extrabold text-[10px] uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all whitespace-nowrap">
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-electric btn-electric-primary px-6 py-3 rounded-xl font-extrabold text-[10px] uppercase tracking-widest whitespace-nowrap">
+                <span className="btn-electric-glow" />
                 Upgrade Organization
               </motion.button>
             </div>

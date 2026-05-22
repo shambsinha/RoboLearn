@@ -116,8 +116,9 @@ const AiTutor = () => {
             <button
               type="submit"
               disabled={loading || !learningGoal.trim()}
-              className="absolute right-2 top-2 bottom-2 px-3 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-500 disabled:opacity-50 transition-colors flex items-center"
+              className="absolute right-2 top-2 bottom-2 px-4 btn-electric btn-electric-primary rounded-md font-medium disabled:opacity-50 transition-colors flex items-center"
             >
+              <span className="btn-electric-glow" />
               {loading ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
             </button>
           </form>

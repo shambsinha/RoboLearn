@@ -185,8 +185,9 @@ const CourseCatalog = () => {
                     <button
                       onClick={() => handleEnroll(course.courseId)}
                       disabled={enrollingId === course.courseId}
-                      className="btn-primary py-2 px-5 text-[10px] uppercase tracking-widest disabled:opacity-50"
+                      className="btn-electric btn-electric-primary py-2 px-5 text-[10px] uppercase tracking-widest disabled:opacity-50"
                     >
+                      <span className="btn-electric-glow" />
                       {enrollingId === course.courseId ? 'Processing...' : 'Enroll Now'}
                     </button>
                   )}

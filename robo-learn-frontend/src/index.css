@@ -1029,8 +1029,63 @@ code, kbd, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
- *  ELECTRICITY / ARC HOVER EFFECT FOR BUTTONS
+ *  ELECTRICITY / ARC HOVER EFFECT FOR BUTTONS & CONTAINERS
  * ═══════════════════════════════════════════════════════════════════ */
+
+/* Register the custom property for animation */
+@property --spark-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Base electric container effect */
+.electric-container {
+  position: relative;
+  isolation: isolate;
+}
+
+.electric-container::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--spark-angle, 0deg),
+    transparent 0%,
+    rgba(6,182,212,0.0) 30%,
+    rgba(6,182,212,0.8) 50%,
+    rgba(99,102,241,0.6) 55%,
+    transparent 60%,
+    transparent 100%
+  );
+  opacity: 1; /* Always visible for sections */
+  z-index: -2;
+  animation: sparkTravel 3s linear infinite;
+}
+
+.electric-container::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background: var(--bg-void);
+  z-index: -1;
+}
+
+/* Electric current variant (faster and thinner) */
+.electric-current::before {
+  background: conic-gradient(
+    from var(--spark-angle, 0deg),
+    transparent 0%,
+    rgba(6,182,212,0.0) 45%,
+    rgba(6,182,212,1) 50%,
+    rgba(99,102,241,1) 51%,
+    transparent 55%,
+    transparent 100%
+  );
+  animation-duration: 2s;
+}
 
 /* Base electric button */
 .btn-electric {

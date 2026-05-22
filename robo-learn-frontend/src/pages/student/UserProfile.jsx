@@ -378,22 +378,25 @@ const UserProfile = () => {
                     <>
                       <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                         onClick={handleSave}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                        className="btn-electric btn-electric-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest"
                       >
+                        <span className="btn-electric-glow" />
                         <Save size={14} /> Save
                       </motion.button>
                       <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                         onClick={() => setIsEditing(false)}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08] transition-all"
+                        className="btn-electric flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08] transition-all"
                       >
+                        <span className="btn-electric-glow" />
                         <X size={14} /> Cancel
                       </motion.button>
                     </>
                   ) : (
                     <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
                       onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest btn-ghost"
+                      className="btn-electric btn-electric-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest"
                     >
+                      <span className="btn-electric-glow" />
                       <Edit2 size={14} /> Edit Profile
                     </motion.button>
                   )}
@@ -680,16 +683,18 @@ const UserProfile = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleUploadCroppedImage}
-                  className="flex-1 btn-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]"
+                  className="flex-1 btn-electric btn-electric-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]"
                 >
+                  <span className="btn-electric-glow" />
                   Save Changes
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowCropper(false)}
-                  className="px-6 py-3 bg-white/[0.04] text-slate-400 border border-white/[0.06] rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/[0.08]"
+                  className="px-6 py-3 btn-electric bg-white/[0.04] text-slate-400 border border-white/[0.06] rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/[0.08]"
                 >
+                  <span className="btn-electric-glow" />
                   Cancel
                 </motion.button>
               </div>

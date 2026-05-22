@@ -66,8 +66,13 @@ const RegisterPage = () => {
         </div>
 
         {/* Form */}
-        <div className="stark-card p-7">
-          <form className="space-y-4" onSubmit={handleSubmit}>
+        <motion.div
+          className="electric-container electric-current rounded-2xl overflow-hidden"
+          whileHover={{ boxShadow: '0 0 48px -8px rgba(6,182,212,0.3)' }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="stark-card p-7 border-none bg-[#0a1424]/90 backdrop-blur-xl">
+            <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -106,8 +111,9 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full justify-center mt-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="btn-electric btn-electric-primary w-full justify-center mt-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
+              <span className="btn-electric-glow" />
               {loading ? (
                 <>
                   <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -121,7 +127,8 @@ const RegisterPage = () => {
               )}
             </button>
           </form>
-        </div>
+          </div>
+        </motion.div>
 
         <p className="text-center text-slate-600 text-[13px] mt-5">
           Already have an account?{' '}
