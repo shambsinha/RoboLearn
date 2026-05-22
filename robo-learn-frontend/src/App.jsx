@@ -32,6 +32,7 @@ const ArenaCatalog     = lazy(() => import('./pages/student/ArenaCatalog'));
 const CodingWorkspace  = lazy(() => import('./pages/student/CodingWorkspace'));
 const CourseViewer     = lazy(() => import('./pages/student/CourseViewer'));
 const UserProfile      = lazy(() => import('./pages/student/UserProfile'));
+const Achievements     = lazy(() => import('./pages/student/Achievements'));
 
 // ── Route-level loading state ────────────────────────────────────────────────
 const RouteLoading = () => (
@@ -99,7 +100,7 @@ function App() {
                   <Route path="problems"           element={<ArenaCatalog />} />
                   <Route path="problems/:problemId" element={<CodingWorkspace />} />
                   <Route path="contests"           element={<PlaceholderPage title="Contests"     desc="Weekly coding challenges and tournaments." />} />
-                  <Route path="achievements"       element={<PlaceholderPage title="Achievements"  desc="Track your progress and earn badges." />} />
+                  <Route path="achievements"       element={<Achievements />} />
                   <Route path="profile"            element={<UserProfile />} />
                   <Route path="ai-tutor"           element={<AiTutor />} />
                 </Route>

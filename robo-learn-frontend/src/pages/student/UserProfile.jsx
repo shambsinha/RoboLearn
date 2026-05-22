@@ -4,7 +4,7 @@ import {
   Mail, Camera, Edit2, Save, X, Trophy,
   Github, Linkedin, Globe, Calendar as CalendarIcon, Hash, Loader,
   Flame, Code2, BookOpen, Award, CheckCircle2, Zap, ArrowUpRight,
-  Star, Briefcase, Trash2, Lock
+  Star, Briefcase, Trash2
 } from 'lucide-react';
 import { studentApi } from '../../api/studentApi';
 import useAuthStore from '../../store/useAuthStore';
@@ -248,20 +248,14 @@ const UserProfile = () => {
   const streakDatesStr = profile.streakDates || [];
   const attemptedDatesStr = profile.attemptedDates || [];
 
-  const achievements = [
-    { id: 'bronze-solver', title: 'Bronze Solver', desc: 'Solved 50 problems', criteria: profile.totalSolved >= 50, icon: <Trophy size={24} />, color: 'text-orange-500', glow: 'shadow-[0_0_15px_rgba(249,115,22,0.3)]' },
-    { id: 'silver-solver', title: 'Silver Solver', desc: 'Solved 100 problems', criteria: profile.totalSolved >= 100, icon: <Trophy size={24} />, color: 'text-slate-300', glow: 'shadow-[0_0_15px_rgba(203,213,225,0.3)]' },
-    { id: 'gold-solver', title: 'Gold Solver', desc: 'Solved 150 problems', criteria: profile.totalSolved >= 150, icon: <Trophy size={24} />, color: 'text-yellow-400', glow: 'shadow-[0_0_15px_rgba(250,204,21,0.3)]' },
-    { id: 'xp-bronze', title: 'Knowledge Seeker', desc: 'Earned 1,000 XP', criteria: (profile.xp || 0) >= 1000, icon: <Star size={24} />, color: 'text-blue-400', glow: 'shadow-[0_0_15px_rgba(96,165,250,0.3)]' },
-    { id: 'xp-silver', title: 'Neural Architect', desc: 'Earned 5,000 XP', criteria: (profile.xp || 0) >= 5000, icon: <Award size={24} />, color: 'text-purple-400', glow: 'shadow-[0_0_15px_rgba(192,132,252,0.3)]' },
-    { id: 'xp-gold', title: 'Logic Legend', desc: 'Earned 10,000 XP', criteria: (profile.xp || 0) >= 10000, icon: <Zap size={24} />, color: 'text-cyan-400', glow: 'shadow-[0_0_15px_rgba(34,211,238,0.3)]' },
-  ];
-
-  const handleShareAchievement = (achievement) => {
-    const shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin)}`;
-    window.open(shareUrl, '_blank');
-    toast.success(`Share your ${achievement.title} trophy on LinkedIn!`);
-  };
+  const unlockedAchievements = [
+    { id: 'bronze-solver', title: 'Bronze Solver', criteria: profile.totalSolved >= 50, icon: <Trophy size={20} />, color: 'text-orange-500' },
+    { id: 'silver-solver', title: 'Silver Solver', criteria: profile.totalSolved >= 100, icon: <Trophy size={20} />, color: 'text-slate-300' },
+    { id: 'gold-solver', title: 'Gold Solver', criteria: profile.totalSolved >= 150, icon: <Trophy size={20} />, color: 'text-yellow-400' },
+    { id: 'xp-bronze', title: 'Knowledge Seeker', criteria: (profile.xp || 0) >= 1000, icon: <Star size={20} />, color: 'text-blue-400' },
+    { id: 'xp-silver', title: 'Neural Architect', criteria: (profile.xp || 0) >= 5000, icon: <Award size={20} />, color: 'text-purple-400' },
+    { id: 'xp-gold', title: 'Logic Legend', criteria: (profile.xp || 0) >= 10000, icon: <Zap size={20} />, color: 'text-cyan-400' },
+  ].filter(a => a.criteria);
 
   const calendarDays = Array.from({ length: 56 }).map((_, i) => {
     const d = subDays(today, 55 - i);
@@ -639,74 +633,36 @@ const UserProfile = () => {
             )}
           </motion.div>
 
-          {/* ── ACHIEVEMENTS SECTION ── */}
+          {/* ── ACHIEVEMENTS (UNLOCKED ONLY) ── */}
           <motion.div {...fadeUp(0.28)} className="glass-card p-6" style={{ background: 'rgba(12,18,30,0.9)' }}>
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
-              <Trophy size={13} className="text-amber-400" /> Neural Achievements
-            </h3>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {achievements.map((ach) => (
-                <div key={ach.id} className="group relative flex flex-col items-center text-center">
-                  {/* Trophy Icon Container */}
-                  <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-500 mb-4
-                    ${ach.criteria 
-                      ? `bg-white/[0.03] border border-white/[0.1] ${ach.glow} scale-100` 
-                      : 'bg-black/40 border border-white/[0.04] scale-95 overflow-hidden'}`}
-                  >
-                    {/* The Icon itself (Blurred if locked) */}
-                    <div className={`transition-all duration-1000 ${
-                      ach.criteria 
-                        ? ach.color 
-                        : 'text-white/5 blur-[8px] scale-75 select-none grayscale'
-                    }`}>
-                      {ach.icon}
-                    </div>
-
-                    {/* Mystery Overlay for locked trophies */}
-                    {!ach.criteria && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent to-black/20">
-                        <motion.div
-                          animate={{ opacity: [0.3, 0.6, 0.3] }}
-                          transition={{ duration: 3, repeat: Infinity }}
-                        >
-                          <Lock size={14} className="text-slate-500" />
-                        </motion.div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Text Info */}
-                  <h4 className={`text-xs font-black uppercase tracking-widest mb-1 ${ach.criteria ? 'text-white' : 'text-slate-700'}`}>
-                    {ach.criteria ? ach.title : 'Mystery Reward'}
-                  </h4>
-                  <p className="text-[10px] font-medium text-slate-500 leading-tight mb-3">
-                    {ach.criteria ? ach.desc : 'Finish requirements to reveal'}
-                  </p>
-
-                  {/* Share Link */}
-                  {ach.criteria ? (
-                    <button 
-                      onClick={() => handleShareAchievement(ach)}
-                      className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
-                    >
-                      <Linkedin size={10} /> Share Achievement
-                    </button>
-                  ) : (
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-700">
-                      Locked
-                    </span>
-                  )}
-
-                  {/* Hover tooltip for locked ones */}
-                  {!ach.criteria && (
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-2 bg-black border border-white/[0.1] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 whitespace-nowrap">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Requirements not met</p>
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Trophy size={13} className="text-amber-400" /> Unlocked Trophies
+              </h3>
+              <a href="/student/achievements" className="text-[9px] font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-widest transition-colors">
+                View All →
+              </a>
             </div>
+
+            {unlockedAchievements.length > 0 ? (
+              <div className="flex flex-wrap gap-4">
+                {unlockedAchievements.map((ach) => (
+                  <div key={ach.id} className={`p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] ${ach.color} flex items-center gap-3 group hover:bg-white/[0.05] transition-all`}>
+                    <div className="shrink-0">{ach.icon}</div>
+                    <div className="pr-1">
+                      <p className="text-[10px] font-black uppercase tracking-tight text-white">{ach.title}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-6 text-center border border-dashed border-white/[0.05] rounded-xl">
+                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">No trophies unlocked yet</p>
+                <a href="/student/achievements" className="mt-2 inline-block text-[9px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors">
+                   Check Requirements
+                </a>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
