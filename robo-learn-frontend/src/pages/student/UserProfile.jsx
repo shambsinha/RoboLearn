@@ -4,7 +4,7 @@ import {
   Mail, Camera, Edit2, Save, X, Trophy,
   Github, Linkedin, Globe, Calendar as CalendarIcon, Hash, Loader,
   Flame, Code2, BookOpen, Award, CheckCircle2, Zap, ArrowUpRight,
-  Star, Briefcase, Trash2
+  Star, Briefcase, Trash2, Lock
 } from 'lucide-react';
 import { studentApi } from '../../api/studentApi';
 import useAuthStore from '../../store/useAuthStore';
@@ -652,24 +652,36 @@ const UserProfile = () => {
                   <div className={`relative w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-500 mb-4
                     ${ach.criteria 
                       ? `bg-white/[0.03] border border-white/[0.1] ${ach.glow} scale-100` 
-                      : 'bg-white/[0.01] border border-dashed border-white/[0.05] grayscale opacity-40 scale-95'}`}
+                      : 'bg-black/40 border border-white/[0.04] scale-95 overflow-hidden'}`}
                   >
-                    <div className={`transition-all duration-700 ${ach.criteria ? ach.color : 'text-slate-600'}`}>
+                    {/* The Icon itself (Blurred if locked) */}
+                    <div className={`transition-all duration-1000 ${
+                      ach.criteria 
+                        ? ach.color 
+                        : 'text-white/5 blur-[8px] scale-75 select-none grayscale'
+                    }`}>
                       {ach.icon}
                     </div>
+
+                    {/* Mystery Overlay for locked trophies */}
                     {!ach.criteria && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Hash size={12} className="text-slate-700 opacity-50" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-transparent to-black/20">
+                        <motion.div
+                          animate={{ opacity: [0.3, 0.6, 0.3] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        >
+                          <Lock size={14} className="text-slate-500" />
+                        </motion.div>
                       </div>
                     )}
                   </div>
 
                   {/* Text Info */}
-                  <h4 className={`text-xs font-black uppercase tracking-widest mb-1 ${ach.criteria ? 'text-white' : 'text-slate-600'}`}>
-                    {ach.title}
+                  <h4 className={`text-xs font-black uppercase tracking-widest mb-1 ${ach.criteria ? 'text-white' : 'text-slate-700'}`}>
+                    {ach.criteria ? ach.title : 'Mystery Reward'}
                   </h4>
                   <p className="text-[10px] font-medium text-slate-500 leading-tight mb-3">
-                    {ach.desc}
+                    {ach.criteria ? ach.desc : 'Finish requirements to reveal'}
                   </p>
 
                   {/* Share Link */}
