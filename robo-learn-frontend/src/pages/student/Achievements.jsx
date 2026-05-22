@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { 
   Trophy, Star, Award, Zap, Linkedin, Lock, Hash, 
-  Rocket, Crown, Search
+  Rocket, Crown, Search, Sparkles
 } from 'lucide-react';
 import { studentApi } from '../../api/studentApi';
 import toast from 'react-hot-toast';
@@ -12,6 +12,150 @@ const fadeUp = (d = 0) => ({
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.5, delay: d, ease: [0.16, 1, 0.3, 1] },
 });
+
+// ── 3D TILT TROPHY CARD COMPONENT ──
+const TrophyCard = ({ ach, onShare, idx }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["15deg", "-15deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div 
+      {...fadeUp(0.15 + (idx * 0.05))}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="group relative electric-card-hover rounded-2xl perspective-1000"
+    >
+      <div className={`stark-card p-8 border-none flex flex-col items-center text-center h-full transition-all duration-500 
+        ${ach.criteria 
+          ? `bg-[#0a1424]/90 ${ach.glow}` 
+          : 'bg-black/40 opacity-80'}`}
+      >
+        {/* 3D Pedestal & Trophy */}
+        <div 
+          style={{ transform: "translateZ(50px)" }}
+          className={`relative w-28 h-28 rounded-full flex items-center justify-center mb-6 transition-all duration-700
+          ${ach.criteria 
+            ? 'bg-gradient-to-br from-white/[0.1] via-transparent to-black/40 border border-white/[0.15] scale-110 animate-robotic-shock' 
+            : 'bg-black/60 border border-dashed border-white/[0.05] scale-100 overflow-hidden'}`}
+        >
+          {/* Internal shadow for 3D look */}
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_4px_12px_rgba(255,255,255,0.1)] pointer-events-none" />
+          
+          {/* Visual Icon (Masked if locked) */}
+          <div className={`transition-all duration-1000 z-10 ${
+            ach.criteria 
+              ? `${ach.color} drop-shadow-[0_0_15px_currentColor]` 
+              : 'text-white/5 blur-[12px] scale-75 select-none'
+          }`}>
+            {ach.icon}
+          </div>
+
+          {/* Mystery Overlay */}
+          {!ach.criteria && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center animate-hologram">
+              <motion.div
+                animate={{ 
+                  opacity: [0.3, 0.7, 0.3], 
+                  scale: [0.9, 1.1, 0.9],
+                  rotateY: [0, 360]
+                }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+              >
+                <Lock size={24} className="text-slate-600" />
+              </motion.div>
+            </div>
+          )}
+          
+          {/* Electric surge rings for unlocked */}
+          {ach.criteria && (
+            <>
+              <div className="absolute inset-0 rounded-full border border-current opacity-20 animate-surge" />
+              <div className="absolute inset-[-6px] rounded-full border border-current opacity-10 animate-surge [animation-delay:0.5s]" />
+              <div className="absolute inset-0 rounded-full bg-current opacity-[0.05] animate-pulse" />
+              {/* Glossy reflection */}
+              <div className="absolute top-1 left-4 right-4 h-1/3 bg-gradient-to-b from-white/[0.1] to-transparent rounded-t-full pointer-events-none" />
+              {/* Floating glints */}
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.8, 0.3],
+                  rotate: [0, 90, 0]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute top-2 right-2 text-white/40 drop-shadow-sm"
+              >
+                <Sparkles size={12} />
+              </motion.div>
+            </>
+          )}        </div>
+
+        {/* Text Info */}
+        <div className="flex-1" style={{ transform: "translateZ(30px)" }}>
+          <span className={`text-[9px] font-black uppercase tracking-[0.2em] mb-2 block ${ach.criteria ? 'text-indigo-400' : 'text-slate-600'}`}>
+            {ach.category}
+          </span>
+          <h3 className={`text-base font-black uppercase tracking-tight mb-2 ${ach.criteria ? 'text-white' : 'text-slate-600'}`}>
+            {ach.criteria ? ach.title : 'Mystery Reward'}
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed px-2 font-medium">
+            {ach.criteria ? ach.desc : 'Required parameters not yet achieved.'}
+          </p>
+        </div>
+
+        {/* Share / Locked Status */}
+        <div className="mt-8 w-full" style={{ transform: "translateZ(20px)" }}>
+          {ach.criteria ? (
+            <button 
+              onClick={() => onShare(ach)}
+              className="btn-electric btn-electric-primary w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em]"
+            >
+              <span className="btn-electric-glow" />
+              <Linkedin size={12} /> Share Trophy
+            </button>
+          ) : (
+            <div className="py-2.5 px-4 rounded-xl border border-white/[0.04] bg-white/[0.02] text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center justify-center gap-2">
+              <Hash size={10} /> Locked Marker
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Tooltip on hover for locked */}
+      {!ach.criteria && (
+        <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none p-4">
+           <div className="bg-black/90 border border-white/[0.1] backdrop-blur-md p-4 rounded-2xl shadow-2xl text-center transform translate-y-2 group-hover:translate-y-0 transition-transform">
+              <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Criteria</p>
+              <p className="text-xs font-bold text-white leading-snug">{ach.desc}</p>
+           </div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
 
 const Achievements = () => {
   const [profile, setProfile] = useState(null);
@@ -123,96 +267,14 @@ const Achievements = () => {
       </motion.div>
 
       {/* ── ACHIEVEMENT GRID ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-20">
         {filteredAchievements.map((ach, idx) => (
-          <motion.div 
+          <TrophyCard 
             key={ach.id}
-            {...fadeUp(0.15 + (idx * 0.05))}
-            className="group relative electric-card-hover rounded-2xl"
-          >
-            <div className={`stark-card p-8 border-none flex flex-col items-center text-center h-full transition-all duration-500 
-              ${ach.criteria 
-                ? `bg-[#0a1424]/90 ${ach.glow}` 
-                : 'bg-black/40 opacity-80'}`}
-            >
-              {/* Trophy Icon Container */}
-              <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 transition-all duration-700
-                ${ach.criteria 
-                  ? `bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.1] scale-110 animate-robotic-shock ${ach.color}` 
-                  : 'bg-black/60 border border-dashed border-white/[0.05] scale-100 overflow-hidden'}`}
-              >
-                {/* Visual Icon (Masked if locked) */}
-                <div className={`transition-all duration-1000 ${
-                  ach.criteria 
-                    ? 'drop-shadow-[0_0_10px_currentColor]' 
-                    : 'text-white/5 blur-[12px] scale-75 select-none'
-                }`}>
-                  {ach.icon}
-                </div>
-
-                {/* Mystery Overlay */}
-                {!ach.criteria && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center animate-hologram">
-                    <motion.div
-                      animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.95, 1.05, 0.95] }}
-                      transition={{ duration: 4, repeat: Infinity }}
-                    >
-                      <Lock size={20} className="text-slate-600" />
-                    </motion.div>
-                  </div>
-                )}
-                
-                {/* Electric surge rings for unlocked */}
-                {ach.criteria && (
-                  <>
-                    <div className="absolute inset-0 rounded-full border border-current opacity-20 animate-surge" />
-                    <div className="absolute inset-[-4px] rounded-full border border-current opacity-10 animate-surge [animation-delay:0.5s]" />
-                    <div className="absolute inset-0 rounded-full bg-current opacity-[0.03] animate-pulse" />
-                  </>
-                )}
-              </div>
-
-              {/* Text Info */}
-              <div className="flex-1">
-                <span className={`text-[9px] font-black uppercase tracking-[0.2em] mb-2 block ${ach.criteria ? 'text-indigo-400' : 'text-slate-600'}`}>
-                  {ach.category}
-                </span>
-                <h3 className={`text-base font-black uppercase tracking-tight mb-2 ${ach.criteria ? 'text-white' : 'text-slate-600'}`}>
-                  {ach.criteria ? ach.title : 'Mystery Reward'}
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed px-2">
-                  {ach.criteria ? ach.desc : 'Required parameters not yet achieved.'}
-                </p>
-              </div>
-
-              {/* Share / Locked Status */}
-              <div className="mt-8 w-full">
-                {ach.criteria ? (
-                  <button 
-                    onClick={() => handleShareAchievement(ach)}
-                    className="btn-electric btn-electric-primary w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em]"
-                  >
-                    <span className="btn-electric-glow" />
-                    <Linkedin size={12} /> Share Trophy
-                  </button>
-                ) : (
-                  <div className="py-2.5 px-4 rounded-xl border border-white/[0.04] bg-white/[0.02] text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center justify-center gap-2">
-                    <Hash size={10} /> Locked Marker
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Tooltip on hover for locked */}
-            {!ach.criteria && (
-              <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none p-4">
-                 <div className="bg-black/90 border border-white/[0.1] backdrop-blur-md p-4 rounded-2xl shadow-2xl text-center transform translate-y-2 group-hover:translate-y-0 transition-transform">
-                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Criteria</p>
-                    <p className="text-xs font-bold text-white leading-snug">{ach.desc}</p>
-                 </div>
-              </div>
-            )}
-          </motion.div>
+            ach={ach}
+            idx={idx}
+            onShare={handleShareAchievement}
+          />
         ))}
       </div>
 

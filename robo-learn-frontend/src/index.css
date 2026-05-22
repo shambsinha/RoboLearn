@@ -1076,6 +1076,15 @@ code, kbd, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
   animation: hologram-flicker 6s infinite;
 }
 
+/* 3D Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
 /* Base electric container effect */
 .electric-container {
   position: relative;

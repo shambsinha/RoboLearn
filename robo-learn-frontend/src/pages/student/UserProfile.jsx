@@ -647,14 +647,20 @@ const UserProfile = () => {
             {unlockedAchievements.length > 0 ? (
               <div className="flex flex-wrap gap-4">
                 {unlockedAchievements.map((ach) => (
-                  <div key={ach.id} className={`p-3 rounded-xl electric-card-hover ${ach.color} flex items-center gap-3 group transition-all relative overflow-hidden animate-robotic-shock`}>
-                    <div className="shrink-0 drop-shadow-[0_0_8px_currentColor] relative z-10">{ach.icon}</div>
-                    <div className="pr-1 relative z-10">
+                  <motion.div 
+                    key={ach.id} 
+                    whileHover={{ y: -5, rotateY: 10, rotateX: 10, scale: 1.05 }}
+                    className={`p-3 rounded-xl electric-card-hover ${ach.color} flex items-center gap-3 group transition-all relative overflow-hidden animate-robotic-shock cursor-default shadow-lg perspective-1000 preserve-3d`}
+                  >
+                    <div className="shrink-0 drop-shadow-[0_0_8px_currentColor] relative z-10" style={{ transform: "translateZ(20px)" }}>{ach.icon}</div>
+                    <div className="pr-1 relative z-10" style={{ transform: "translateZ(10px)" }}>
                       <p className="text-[10px] font-black uppercase tracking-tight text-white">{ach.title}</p>
                     </div>
                     {/* Background surge effect */}
                     <div className="absolute inset-0 bg-current opacity-[0.03] animate-pulse z-0" />
-                  </div>
+                    {/* High-gloss shine */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                  </motion.div>
                 ))}
               </div>
             ) : (
