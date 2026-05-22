@@ -1039,6 +1039,43 @@ code, kbd, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
   inherits: false;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+ *  ROBOTIC & ELECTRIC TROPHY EFFECTS
+ * ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes robotic-shock {
+  0%, 94%, 100% { transform: translate(0, 0) scale(1); filter: brightness(1); }
+  95% { transform: translate(1px, -1px) scale(1.01); filter: brightness(1.8) contrast(1.2) drop-shadow(0 0 8px currentColor); }
+  96% { transform: translate(-1.5px, 1.5px) scale(0.99); filter: brightness(2.5) saturate(1.5) drop-shadow(0 0 15px currentColor); }
+  97% { transform: translate(1px, 1px) scale(1.02); filter: brightness(1.5) contrast(1.1); }
+  98% { transform: translate(-0.5px, -0.5px) scale(1); filter: brightness(1.2); }
+}
+
+.animate-robotic-shock {
+  animation: robotic-shock 4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes electric-surge-ring {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+}
+
+.animate-surge {
+  animation: electric-surge-ring 2s infinite ease-in-out;
+}
+
+@keyframes hologram-flicker {
+  0%, 100% { opacity: 0.6; }
+  10%, 90% { opacity: 0.7; }
+  45% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+  55% { opacity: 0.4; }
+}
+
+.animate-hologram {
+  animation: hologram-flicker 6s infinite;
+}
+
 /* Base electric container effect */
 .electric-container {
   position: relative;

@@ -647,11 +647,13 @@ const UserProfile = () => {
             {unlockedAchievements.length > 0 ? (
               <div className="flex flex-wrap gap-4">
                 {unlockedAchievements.map((ach) => (
-                  <div key={ach.id} className={`p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] ${ach.color} flex items-center gap-3 group hover:bg-white/[0.05] transition-all`}>
-                    <div className="shrink-0">{ach.icon}</div>
-                    <div className="pr-1">
+                  <div key={ach.id} className={`p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] ${ach.color} flex items-center gap-3 group hover:bg-white/[0.05] transition-all relative overflow-hidden animate-robotic-shock`}>
+                    <div className="shrink-0 drop-shadow-[0_0_8px_currentColor]">{ach.icon}</div>
+                    <div className="pr-1 relative z-10">
                       <p className="text-[10px] font-black uppercase tracking-tight text-white">{ach.title}</p>
                     </div>
+                    {/* Background surge effect */}
+                    <div className="absolute inset-0 bg-current opacity-[0.03] animate-pulse" />
                   </div>
                 ))}
               </div>

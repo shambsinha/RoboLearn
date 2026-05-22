@@ -138,13 +138,13 @@ const Achievements = () => {
               {/* Trophy Icon Container */}
               <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 transition-all duration-700
                 ${ach.criteria 
-                  ? 'bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.1] scale-110' 
+                  ? `bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.1] scale-110 animate-robotic-shock ${ach.color}` 
                   : 'bg-black/60 border border-dashed border-white/[0.05] scale-100 overflow-hidden'}`}
               >
                 {/* Visual Icon (Masked if locked) */}
                 <div className={`transition-all duration-1000 ${
                   ach.criteria 
-                    ? ach.color 
+                    ? 'drop-shadow-[0_0_10px_currentColor]' 
                     : 'text-white/5 blur-[12px] scale-75 select-none'
                 }`}>
                   {ach.icon}
@@ -152,7 +152,7 @@ const Achievements = () => {
 
                 {/* Mystery Overlay */}
                 {!ach.criteria && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center animate-hologram">
                     <motion.div
                       animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.95, 1.05, 0.95] }}
                       transition={{ duration: 4, repeat: Infinity }}
@@ -162,9 +162,13 @@ const Achievements = () => {
                   </div>
                 )}
                 
-                {/* Glow ring for unlocked */}
+                {/* Electric surge rings for unlocked */}
                 {ach.criteria && (
-                  <div className="absolute inset-0 rounded-full animate-pulse-slow opacity-20 bg-current pointer-events-none" />
+                  <>
+                    <div className="absolute inset-0 rounded-full border border-current opacity-20 animate-surge" />
+                    <div className="absolute inset-[-4px] rounded-full border border-current opacity-10 animate-surge [animation-delay:0.5s]" />
+                    <div className="absolute inset-0 rounded-full bg-current opacity-[0.03] animate-pulse" />
+                  </>
                 )}
               </div>
 
