@@ -249,7 +249,7 @@ const UserProfile = () => {
   const attemptedDatesStr = profile.attemptedDates || [];
 
   const unlockedAchievements = [
-    { id: 'bronze-solver', title: 'Bronze Solver', criteria: profile.totalSolved >= 1, icon: <Trophy size={20} />, color: 'text-orange-500' },
+    { id: 'bronze-solver', title: 'Bronze Solver', criteria: profile.totalSolved >= 50, icon: <Trophy size={20} />, color: 'text-orange-500' },
     { id: 'silver-solver', title: 'Silver Solver', criteria: profile.totalSolved >= 100, icon: <Trophy size={20} />, color: 'text-slate-300' },
     { id: 'gold-solver', title: 'Gold Solver', criteria: profile.totalSolved >= 150, icon: <Trophy size={20} />, color: 'text-yellow-400' },
     { id: 'xp-bronze', title: 'Knowledge Seeker', criteria: (profile.xp || 0) >= 1000, icon: <Star size={20} />, color: 'text-blue-400' },

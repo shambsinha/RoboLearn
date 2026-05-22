@@ -33,7 +33,7 @@ const Achievements = () => {
   }, []);
 
   const achievements = profile ? [
-    { id: 'bronze-solver', title: 'Bronze Solver', desc: 'Solved 1 problem', criteria: profile.totalSolved >= 1, icon: <Trophy size={28} />, color: 'text-orange-500', glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]', category: 'Problem Solving' },
+    { id: 'bronze-solver', title: 'Bronze Solver', desc: 'Solved 50 problems', criteria: profile.totalSolved >= 50, icon: <Trophy size={28} />, color: 'text-orange-500', glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]', category: 'Problem Solving' },
     { id: 'silver-solver', title: 'Silver Solver', desc: 'Solved 100 problems', criteria: profile.totalSolved >= 100, icon: <Trophy size={28} />, color: 'text-slate-300', glow: 'shadow-[0_0_20px_rgba(203,213,225,0.3)]', category: 'Problem Solving' },
     { id: 'gold-solver', title: 'Gold Solver', desc: 'Solved 150 problems', criteria: profile.totalSolved >= 150, icon: <Trophy size={28} />, color: 'text-yellow-400', glow: 'shadow-[0_0_20px_rgba(250,204,21,0.3)]', category: 'Problem Solving' },
     { id: 'xp-bronze', title: 'Knowledge Seeker', desc: 'Earned 1,000 XP', criteria: (profile.xp || 0) >= 1000, icon: <Star size={28} />, color: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]', category: 'Experience' },
