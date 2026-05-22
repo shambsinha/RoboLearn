@@ -40,8 +40,11 @@ spring:
 
   # Kafka Configuration
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    listener:
+      auto-startup: ${KAFKA_ENABLED:false}
     admin:
+      auto-create: ${KAFKA_ENABLED:false}
       fail-fast: false
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -82,5 +85,8 @@ logging:
     root: INFO
     com.robolearn: DEBUG
     org.springframework.security: DEBUG
+    org.apache.kafka: ERROR
+    org.springframework.kafka: ERROR
+    org.hibernate.orm.deprecation: ERROR
   pattern:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] [%thread] %-5level %logger{36} - %msg%n"

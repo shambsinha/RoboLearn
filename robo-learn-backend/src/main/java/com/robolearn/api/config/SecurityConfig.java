@@ -56,16 +56,28 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         String allowedOrigins = System.getenv("ALLOWED_ORIGINS");
-        List<String> origins = allowedOrigins != null 
-            ? Arrays.asList(allowedOrigins.split(",")) 
-            : Arrays.asList("http://localhost:5173", "http://127.0.0.1:5173");
+        List<String> origins;
+        
+        if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+            origins = Arrays.stream(allowedOrigins.split(","))
+                    .map(String::trim)
+                    .toList();
+        } else {
+            origins = Arrays.asList(
+                "http://localhost:5173", 
+                "http://127.0.0.1:5173", 
+                "https://ragt.vercel.app",
+                "https://*.vercel.app"
+            );
+        }
 
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(origins);
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
