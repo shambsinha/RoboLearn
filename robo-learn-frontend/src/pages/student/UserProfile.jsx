@@ -249,7 +249,7 @@ const UserProfile = () => {
   const attemptedDatesStr = profile.attemptedDates || [];
 
   const unlockedAchievements = [
-    { id: 'bronze-solver', title: 'Bronze Solver', criteria: profile.totalSolved >= 50, icon: <Trophy size={20} />, color: 'text-orange-500' },
+    { id: 'bronze-solver', title: 'Bronze Solver', criteria: profile.totalSolved >= 1, icon: <Trophy size={20} />, color: 'text-orange-500' },
     { id: 'silver-solver', title: 'Silver Solver', criteria: profile.totalSolved >= 100, icon: <Trophy size={20} />, color: 'text-slate-300' },
     { id: 'gold-solver', title: 'Gold Solver', criteria: profile.totalSolved >= 150, icon: <Trophy size={20} />, color: 'text-yellow-400' },
     { id: 'xp-bronze', title: 'Knowledge Seeker', criteria: (profile.xp || 0) >= 1000, icon: <Star size={20} />, color: 'text-blue-400' },
@@ -647,13 +647,13 @@ const UserProfile = () => {
             {unlockedAchievements.length > 0 ? (
               <div className="flex flex-wrap gap-4">
                 {unlockedAchievements.map((ach) => (
-                  <div key={ach.id} className={`p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] ${ach.color} flex items-center gap-3 group hover:bg-white/[0.05] transition-all relative overflow-hidden animate-robotic-shock`}>
-                    <div className="shrink-0 drop-shadow-[0_0_8px_currentColor]">{ach.icon}</div>
+                  <div key={ach.id} className={`p-3 rounded-xl electric-card-hover ${ach.color} flex items-center gap-3 group transition-all relative overflow-hidden animate-robotic-shock`}>
+                    <div className="shrink-0 drop-shadow-[0_0_8px_currentColor] relative z-10">{ach.icon}</div>
                     <div className="pr-1 relative z-10">
                       <p className="text-[10px] font-black uppercase tracking-tight text-white">{ach.title}</p>
                     </div>
                     {/* Background surge effect */}
-                    <div className="absolute inset-0 bg-current opacity-[0.03] animate-pulse" />
+                    <div className="absolute inset-0 bg-current opacity-[0.03] animate-pulse z-0" />
                   </div>
                 ))}
               </div>

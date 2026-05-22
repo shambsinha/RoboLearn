@@ -33,7 +33,7 @@ const Achievements = () => {
   }, []);
 
   const achievements = profile ? [
-    { id: 'bronze-solver', title: 'Bronze Solver', desc: 'Solved 50 problems', criteria: profile.totalSolved >= 50, icon: <Trophy size={28} />, color: 'text-orange-500', glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]', category: 'Problem Solving' },
+    { id: 'bronze-solver', title: 'Bronze Solver', desc: 'Solved 1 problem', criteria: profile.totalSolved >= 1, icon: <Trophy size={28} />, color: 'text-orange-500', glow: 'shadow-[0_0_20px_rgba(249,115,22,0.3)]', category: 'Problem Solving' },
     { id: 'silver-solver', title: 'Silver Solver', desc: 'Solved 100 problems', criteria: profile.totalSolved >= 100, icon: <Trophy size={28} />, color: 'text-slate-300', glow: 'shadow-[0_0_20px_rgba(203,213,225,0.3)]', category: 'Problem Solving' },
     { id: 'gold-solver', title: 'Gold Solver', desc: 'Solved 150 problems', criteria: profile.totalSolved >= 150, icon: <Trophy size={28} />, color: 'text-yellow-400', glow: 'shadow-[0_0_20px_rgba(250,204,21,0.3)]', category: 'Problem Solving' },
     { id: 'xp-bronze', title: 'Knowledge Seeker', desc: 'Earned 1,000 XP', criteria: (profile.xp || 0) >= 1000, icon: <Star size={28} />, color: 'text-blue-400', glow: 'shadow-[0_0_20px_rgba(96,165,250,0.3)]', category: 'Experience' },
@@ -128,12 +128,12 @@ const Achievements = () => {
           <motion.div 
             key={ach.id}
             {...fadeUp(0.15 + (idx * 0.05))}
-            className="group relative"
+            className="group relative electric-card-hover rounded-2xl"
           >
-            <div className={`stark-card p-8 flex flex-col items-center text-center h-full transition-all duration-500 
+            <div className={`stark-card p-8 border-none flex flex-col items-center text-center h-full transition-all duration-500 
               ${ach.criteria 
-                ? `bg-white/[0.02] border-white/[0.08] ${ach.glow}` 
-                : 'bg-black/40 border-white/[0.04] opacity-80'}`}
+                ? `bg-[#0a1424]/90 ${ach.glow}` 
+                : 'bg-black/40 opacity-80'}`}
             >
               {/* Trophy Icon Container */}
               <div className={`relative w-24 h-24 rounded-full flex items-center justify-center mb-6 transition-all duration-700
