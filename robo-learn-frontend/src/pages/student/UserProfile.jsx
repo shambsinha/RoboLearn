@@ -649,17 +649,22 @@ const UserProfile = () => {
                 {unlockedAchievements.map((ach) => (
                   <motion.div 
                     key={ach.id} 
-                    whileHover={{ y: -5, rotateY: 10, rotateX: 10, scale: 1.05 }}
-                    className={`p-3 rounded-xl electric-card-hover ${ach.color} flex items-center gap-3 group transition-all relative overflow-hidden animate-robotic-shock cursor-default shadow-lg perspective-1000 preserve-3d`}
+                    whileHover={{ y: -5, rotateY: 12, rotateX: 10, scale: 1.05 }}
+                    className={`p-3.5 rounded-2xl electric-card-hover ${ach.color} flex items-center gap-3.5 group transition-all relative overflow-hidden animate-robotic-shock cursor-default shadow-2xl perspective-1000 preserve-3d bg-white/[0.03] border border-white/[0.1] backdrop-blur-md`}
                   >
-                    <div className="shrink-0 drop-shadow-[0_0_8px_currentColor] relative z-10" style={{ transform: "translateZ(20px)" }}>{ach.icon}</div>
-                    <div className="pr-1 relative z-10" style={{ transform: "translateZ(10px)" }}>
-                      <p className="text-[10px] font-black uppercase tracking-tight text-white">{ach.title}</p>
+                    <div className="shrink-0 drop-shadow-[0_0_12px_currentColor] relative z-10 scale-110" style={{ transform: "translateZ(30px)" }}>
+                      {ach.icon}
                     </div>
-                    {/* Background surge effect */}
-                    <div className="absolute inset-0 bg-current opacity-[0.03] animate-pulse z-0" />
-                    {/* High-gloss shine */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <div className="pr-1 relative z-10" style={{ transform: "translateZ(15px)" }}>
+                      <p className="text-[11px] font-black uppercase tracking-tight text-white drop-shadow-md">{ach.title}</p>
+                    </div>
+                    
+                    {/* Multi-layered surge background */}
+                    <div className="absolute inset-0 bg-current opacity-[0.05] animate-pulse z-0" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.1] via-transparent to-transparent pointer-events-none" />
+                    
+                    {/* Scanning glint */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </motion.div>
                 ))}
               </div>

@@ -1076,6 +1076,26 @@ code, kbd, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
   animation: hologram-flicker 6s infinite;
 }
 
+@keyframes laser-scan {
+  0% { top: -10%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 110%; opacity: 0; }
+}
+
+.animate-laser {
+  animation: laser-scan 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-5px) rotate(2deg); }
+}
+
+.animate-float {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
 /* 3D Utilities */
 .perspective-1000 {
   perspective: 1000px;
@@ -1168,13 +1188,14 @@ code, kbd, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
   position: absolute;
   inset: 1px;
   border-radius: inherit;
-  background: var(--bg-void);
+  background: rgba(14,22,38,0.4);
+  backdrop-filter: blur(10px);
   z-index: -1;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .electric-card-hover:hover::after {
-  background: rgba(14,22,38,0.95);
+  background: rgba(14,22,38,0.8);
 }
 
 /* Base electric button */
