@@ -29,18 +29,17 @@ public class CodeExecutionEngine {
         try {
             long startTime = System.currentTimeMillis();
             workspace = setupWorkspace(submission, testCases);
-            String volumeMapping = workspace.toAbsolutePath().toString().replace("\\", "/") + ":/code";
 
             // 1. Compilation Phase
             if (isCompiledLanguage(submission.getLanguage())) {
-                ExecutionResult compileResult = compile(submission, volumeMapping);
+                ExecutionResult compileResult = compile(submission, workspace);
                 if (compileResult.exitCode != 0) {
                     return handleCompilationError(submission, compileResult, startTime);
                 }
             }
 
-            // 2. Batch Execution Phase (Single Container Run)
-            ExecutionResult batchResult = runBatch(submission, testCases, volumeMapping);
+            // 2. Batch Execution Phase
+            ExecutionResult batchResult = runBatch(submission, testCases, workspace);
             
             // 3. Process All Results
             processResults(submission, workspace, testCases);
@@ -84,6 +83,9 @@ public class CodeExecutionEngine {
 
         // Driver Script
         Files.writeString(workspace.resolve("runner.sh"), buildRunnerScript(submission, count));
+        // Ensure the script is executable on Linux
+        File scriptFile = workspace.resolve("runner.sh").toFile();
+        scriptFile.setExecutable(true);
         
         return workspace;
     }
@@ -105,31 +107,20 @@ public class CodeExecutionEngine {
         return sb.toString();
     }
 
-    private ExecutionResult compile(CodeSubmission submission, String volumeMapping) throws IOException, InterruptedException {
+    private ExecutionResult compile(CodeSubmission submission, Path workspace) throws IOException, InterruptedException {
         String lang = submission.getLanguage().toLowerCase();
         String[] cmd;
         if ("java".equals(lang)) {
-            cmd = new String[]{"docker", "run", "--rm", "-v", volumeMapping, "-w", "/code", "eclipse-temurin:17-alpine", "javac", getClassName(submission.getCode()) + ".java"};
+            cmd = new String[]{"javac", getClassName(submission.getCode()) + ".java"};
         } else {
-            cmd = new String[]{"docker", "run", "--rm", "-v", volumeMapping, "-w", "/code", "gcc:13-alpine", "g++", "-O3", "-o", "main", "main.cpp"};
+            cmd = new String[]{"g++", "-O3", "-o", "main", "main.cpp"};
         }
-        return runCommand(cmd, 15);
+        return runCommand(cmd, workspace, 15);
     }
 
-    private ExecutionResult runBatch(CodeSubmission submission, List<TestCase> testCases, String volumeMapping) throws IOException, InterruptedException {
-        String lang = submission.getLanguage().toLowerCase();
-        String image = switch (lang) {
-            case "python" -> "python:3.11-alpine";
-            case "java" -> "eclipse-temurin:17-alpine";
-            case "cpp", "c++" -> "gcc:13-alpine";
-            default -> "alpine:latest";
-        };
-
-        String[] cmd = {
-            "docker", "run", "--rm", "--network", "none", "--memory", "256m", "--cpus", "1.0",
-            "-v", volumeMapping, "-w", "/code", image, "sh", "runner.sh"
-        };
-        return runCommand(cmd, 30 + (testCases != null ? testCases.size() * 2 : 5));
+    private ExecutionResult runBatch(CodeSubmission submission, List<TestCase> testCases, Path workspace) throws IOException, InterruptedException {
+        String[] cmd = {"sh", "./runner.sh"};
+        return runCommand(cmd, workspace, 30 + (testCases != null ? testCases.size() * 2 : 5));
     }
 
     private void processResults(CodeSubmission submission, Path workspace, List<TestCase> testCases) throws IOException {
@@ -209,8 +200,9 @@ public class CodeExecutionEngine {
         try { return Files.exists(p) ? Files.readString(p) : ""; } catch (IOException e) { return ""; }
     }
 
-    private ExecutionResult runCommand(String[] cmd, int timeout) throws IOException, InterruptedException {
+    private ExecutionResult runCommand(String[] cmd, Path workspace, int timeout) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(cmd);
+        pb.directory(workspace.toFile());
         pb.redirectErrorStream(true);
         Process p = pb.start();
         StringBuilder out = new StringBuilder();
