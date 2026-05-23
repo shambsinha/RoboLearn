@@ -29,7 +29,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             origins = new String[]{
                 "http://localhost:5173", 
                 "http://127.0.0.1:5173", 
-                "https://ragt.vercel.app",
                 "https://robo-learn.netlify.app"
             };
         }
