@@ -126,7 +126,12 @@ const CodingWorkspace = () => {
       return;
     }
     const token = localStorage.getItem('token');
-    const socket = new SockJS('http://127.0.0.1:8080/ws-arena');
+    
+    // Use dynamic backend URL (strip /api if present)
+    let backendUrl = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8080';
+    backendUrl = backendUrl.replace(/\/api$/, '').replace(/\/+$/, '');
+    
+    const socket = new SockJS(`${backendUrl}/ws-arena`);
     const client = new Client({
       webSocketFactory: () => socket,
       connectHeaders: { Authorization: `Bearer ${token}` },
