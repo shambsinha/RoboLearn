@@ -19,5 +19,7 @@ public class ProblemResponse {
     private String courseId;
     private List<String> tags;
     private String boilerplateCode;
+    private String driverCode;
+    private Integer totalTestCases;
     private List<TestCaseResponse> testCases;
 }

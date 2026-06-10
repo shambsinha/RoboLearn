@@ -1,10 +1,10 @@
 package com.robolearn.api.controller;
 
 import com.robolearn.api.dto.response.AdminUserResponse;
+import com.robolearn.api.dto.response.UserProfileResponse;
 import com.robolearn.api.service.AdminUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,7 +12,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
@@ -23,7 +22,7 @@ public class AdminUserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<AdminUserResponse> getUserProfile(@PathVariable Long userId) {
+    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
         return ResponseEntity.ok(adminUserService.getUserProfile(userId));
     }
 

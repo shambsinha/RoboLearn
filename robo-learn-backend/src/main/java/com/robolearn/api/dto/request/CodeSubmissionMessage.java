@@ -15,4 +15,5 @@ public class CodeSubmissionMessage {
     private Long userId;
     private String code;
     private String language;
+    private boolean runOnly;
 }

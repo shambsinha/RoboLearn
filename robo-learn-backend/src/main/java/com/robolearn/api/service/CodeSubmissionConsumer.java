@@ -50,8 +50,11 @@ public class CodeSubmissionConsumer {
                 sendError(message.getUserId(), message.getSubmissionId(), "Problem not found");
                 return;
             }
-            List<TestCase> testCases = testCaseRepository.findAllById(problem.getTestCaseIds());
-            log.info("[PIPELINE-DEBUG] 3. Found {} test cases. Starting execution engine.", testCases.size());
+            List<TestCase> allTestCases = testCaseRepository.findAllById(problem.getTestCaseIds());
+            List<TestCase> testCasesToRun = message.isRunOnly() 
+                ? allTestCases.stream().filter(tc -> !tc.isHidden()).toList()
+                : allTestCases;
+            log.info("[PIPELINE-DEBUG] 3. Found {} test cases. Starting execution engine.", testCasesToRun.size());
 
             // 3. Execute code
             CodeSubmission submission = CodeSubmission.builder()
@@ -64,7 +67,8 @@ public class CodeSubmissionConsumer {
 
             submission = executionEngine.execute(
                     submission,
-                    testCases
+                    testCasesToRun,
+                    problem
             );
 
             if (submission == null) {
@@ -80,13 +84,13 @@ public class CodeSubmissionConsumer {
                     .executionTimeMs(submission.getExecutionTimeMs())
                     .logs(submission.getLogs())
                     .result(submission.getResult())
-                    .totalTestCases(submission.getTotalTestCases())
+                    .totalTestCases(message.isRunOnly() ? testCasesToRun.size() : submission.getTotalTestCases())
                     .passedTestCases(submission.getPassedTestCases())
                     .testCaseResults(submission.getTestCaseResults() == null ? null : submission.getTestCaseResults().stream()
                             .map(r -> SubmissionResponse.TestCaseResult.builder()
                                     .id(r.getTestCaseId())
                                     .status(r.getStatus())
-                                    .actualOutput(r.getActualOutput())
+                                    .actualOutput(r.isHidden() ? null : r.getActualOutput())
                                     .isHidden(r.isHidden())
                                     .build())
                             .toList())

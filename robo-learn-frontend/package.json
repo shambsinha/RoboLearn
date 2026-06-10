@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@react-oauth/google": "^0.13.5",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.17.10",
     "@stomp/stompjs": "^7.3.0",
@@ -18,6 +19,7 @@
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
     "framer-motion": "^12.38.0",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.292.0",
     "quill-image-resize-module-react": "^3.0.0",
     "react": "^18.2.0",

@@ -33,6 +33,11 @@ public class CodingProblem {
 
     private String boilerplateCode;
 
+    private String driverCode;
+
+    @Builder.Default
+    private java.util.Map<String, String> driverCodeTemplate = new java.util.HashMap<>();
+
     @Builder.Default
     private List<Long> testCaseIds = new ArrayList<>();
 }

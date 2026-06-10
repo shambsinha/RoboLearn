@@ -11,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/student/ai")
@@ -30,5 +31,11 @@ public class StudentAiController {
     public ResponseEntity<List<AiToDoList>> getMyPaths() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(aiAgentService.getUserPaths(email));
+    }
+
+    @PostMapping("/chat")
+    public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request) {
+        String response = aiAgentService.chat(request.get("message"));
+        return ResponseEntity.ok(Map.of("response", response));
     }
 }

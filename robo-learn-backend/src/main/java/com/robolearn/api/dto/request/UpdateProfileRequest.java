@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateProfileRequest {
+    private String username;
     private String profilePictureUrl;
     private String bio;
     private String githubUrl;
     private String linkedinUrl;
     private String portfolioUrl;
-    private String onboardingStatus;
 }

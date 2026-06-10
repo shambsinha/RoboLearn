@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Mail, Camera, Edit2, Save, X, Trophy,
   Github, Linkedin, Globe, Calendar as CalendarIcon, Hash, Loader,
   Flame, Code2, BookOpen, Award, CheckCircle2, Zap, ArrowUpRight,
-  Star, Briefcase, Trash2
+  Star, Briefcase, Trash2, XCircle, Check, Loader2, User as UserIcon,
+  Lock, KeyRound, Eye, EyeOff
 } from 'lucide-react';
 import { studentApi } from '../../api/studentApi';
 import useAuthStore from '../../store/useAuthStore';
+import apiClient from '../../api/client';
 import toast from 'react-hot-toast';
 import { format, subDays, parseISO } from 'date-fns';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
@@ -23,7 +25,7 @@ const fadeUp = (d = 0) => ({
 const SparkleIcon = ({ size = 16, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
     strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
   </svg>
 );
 
@@ -107,6 +109,27 @@ const UserProfile = () => {
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
   const [editForm, setEditForm] = useState({});
+  const [usernameStatus, setUsernameStatus] = useState('idle'); // 'idle', 'loading', 'available', 'taken', 'too-short'
+
+  // Password Change State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false });
+
+  // Set Local Password State (for Google Users)
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [oauthPasswordForm, setOauthPasswordForm] = useState({
+    otp: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
 
   // Cropping State
   const [showCropper, setShowCropper] = useState(false);
@@ -122,20 +145,32 @@ const UserProfile = () => {
       const data = await studentApi.getUserProfile();
       setProfile(data);
       setEditForm({
+        username: data.username || '',
         profilePictureUrl: data.profilePictureUrl || '',
         bio: data.bio || '',
         githubUrl: data.githubUrl || '',
         linkedinUrl: data.linkedinUrl || '',
-        portfolioUrl: data.portfolioUrl || '',
-        onboardingStatus: data.onboardingStatus || ''
+        portfolioUrl: data.portfolioUrl || ''
       });
-      if (data.profilePictureUrl) {
-        const currentUser = JSON.parse(localStorage.getItem('user')) || {};
-        if (currentUser.profilePictureUrl !== data.profilePictureUrl) {
-          currentUser.profilePictureUrl = data.profilePictureUrl;
-          localStorage.setItem('user', JSON.stringify(currentUser));
-          useAuthStore.setState({ user: currentUser });
-        }
+      
+      // Update global store if data has changed
+      const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+      let changed = false;
+      if (currentUser.profilePictureUrl !== data.profilePictureUrl) {
+        currentUser.profilePictureUrl = data.profilePictureUrl;
+        changed = true;
+      }
+      if (currentUser.username !== data.username) {
+        currentUser.username = data.username;
+        changed = true;
+      }
+      if (currentUser.authProvider !== data.authProvider) {
+        currentUser.authProvider = data.authProvider;
+        changed = true;
+      }
+      if (changed) {
+        localStorage.setItem('user', JSON.stringify(currentUser));
+        useAuthStore.setState({ user: currentUser });
       }
     } catch (err) {
       toast.error('Failed to load profile');
@@ -143,6 +178,33 @@ const UserProfile = () => {
       setLoading(false);
     }
   };
+
+  const checkUsername = useCallback(async (name) => {
+    if (name === profile?.username) {
+      setUsernameStatus('available');
+      return;
+    }
+    if (name.length < 5) {
+      setUsernameStatus('too-short');
+      return;
+    }
+    setUsernameStatus('loading');
+    try {
+      const { data: isAvailable } = await apiClient.get(`/auth/check-username?username=${name}`);
+      setUsernameStatus(isAvailable ? 'available' : 'taken');
+    } catch (err) {
+      setUsernameStatus('idle');
+    }
+  }, [profile?.username]);
+
+  useEffect(() => {
+    if (isEditing && editForm.username && editForm.username !== profile?.username) {
+      const timer = setTimeout(() => checkUsername(editForm.username), 500);
+      return () => clearTimeout(timer);
+    } else if (isEditing && editForm.username === profile?.username) {
+      setUsernameStatus('idle');
+    }
+  }, [editForm.username, isEditing, profile?.username, checkUsername]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -200,7 +262,6 @@ const UserProfile = () => {
       setEditForm(prev => ({ ...prev, profilePictureUrl: null }));
       toast.success('Profile photo removed!');
 
-      // Update auth store user as well
       const currentUser = useAuthStore.getState().user;
       currentUser.profilePictureUrl = null;
       localStorage.setItem('user', JSON.stringify(currentUser));
@@ -213,13 +274,94 @@ const UserProfile = () => {
   };
 
   const handleSave = async () => {
+    if (editForm.username !== profile.username && usernameStatus !== 'available') {
+      toast.error('Please choose a valid and available username');
+      return;
+    }
     try {
-      await studentApi.updateProfile(editForm);
+      const updatedProfile = await studentApi.updateProfile(editForm);
       toast.success('Profile updated!');
       setIsEditing(false);
-      fetchProfile();
-    } catch {
-      toast.error('Failed to update profile');
+      
+      // Update store
+      const currentUser = JSON.parse(localStorage.getItem('user')) || {};
+      currentUser.username = updatedProfile.username;
+      currentUser.profilePictureUrl = updatedProfile.profilePictureUrl;
+      localStorage.setItem('user', JSON.stringify(currentUser));
+      useAuthStore.setState({ user: currentUser });
+
+      setProfile(updatedProfile);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update profile');
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    
+    setPasswordLoading(true);
+    try {
+      await studentApi.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+      toast.success('Password updated successfully!');
+      setShowPasswordModal(false);
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      toast.error(err.response?.data || 'Failed to update password');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleRequestOtp = async () => {
+    setOtpLoading(true);
+    try {
+      await studentApi.requestSetPasswordOtp();
+      toast.success('Verification code sent to your email');
+      setOtpSent(true);
+    } catch (err) {
+      toast.error('Failed to send verification code');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleSetPassword = async (e) => {
+    e.preventDefault();
+    if (oauthPasswordForm.newPassword !== oauthPasswordForm.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (oauthPasswordForm.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    
+    setPasswordLoading(true);
+    try {
+      await studentApi.setPassword({
+        email: profile.email,
+        otp: oauthPasswordForm.otp,
+        newPassword: oauthPasswordForm.newPassword
+      });
+      toast.success('Local password set successfully!');
+      setShowSetPasswordModal(false);
+      setOauthPasswordForm({ otp: '', newPassword: '', confirmPassword: '' });
+      setOtpSent(false);
+    } catch (err) {
+      toast.error(err.response?.data || 'Failed to set password');
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -249,9 +391,9 @@ const UserProfile = () => {
   const attemptedDatesStr = profile.attemptedDates || [];
 
   const unlockedAchievements = [
-    { id: 'bronze-solver', title: 'Bronze Solver', criteria: profile.totalSolved >= 50, icon: <Trophy size={20} />, color: 'text-orange-500' },
-    { id: 'silver-solver', title: 'Silver Solver', criteria: profile.totalSolved >= 100, icon: <Trophy size={20} />, color: 'text-slate-300' },
-    { id: 'gold-solver', title: 'Gold Solver', criteria: profile.totalSolved >= 150, icon: <Trophy size={20} />, color: 'text-yellow-400' },
+    { id: 'bronze-solver', title: 'Bronze Solver', criteria: (profile.solvedProblemIds?.length || 0) >= 5, icon: <Trophy size={20} />, color: 'text-orange-500' },
+    { id: 'silver-solver', title: 'Silver Solver', criteria: (profile.solvedProblemIds?.length || 0) >= 20, icon: <Trophy size={20} />, color: 'text-slate-300' },
+    { id: 'gold-solver', title: 'Gold Solver', criteria: (profile.solvedProblemIds?.length || 0) >= 50, icon: <Trophy size={20} />, color: 'text-yellow-400' },
     { id: 'xp-bronze', title: 'Knowledge Seeker', criteria: (profile.xp || 0) >= 1000, icon: <Star size={20} />, color: 'text-blue-400' },
     { id: 'xp-silver', title: 'Neural Architect', criteria: (profile.xp || 0) >= 5000, icon: <Award size={20} />, color: 'text-purple-400' },
     { id: 'xp-gold', title: 'Logic Legend', criteria: (profile.xp || 0) >= 10000, icon: <Zap size={20} />, color: 'text-cyan-400' },
@@ -368,7 +510,7 @@ const UserProfile = () => {
                       <Mail size={12} className="text-indigo-400" /> {profile.email}
                     </span>
                     <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                      <Briefcase size={11} /> {profile.onboardingStatus || 'Learner'}
+                      <Briefcase size={11} /> {profile.role}
                     </span>
                     <span className="flex items-center gap-1.5 text-slate-500 text-xs font-medium">
                       <CalendarIcon size={11} /> Joined {profile.joinedAt ? format(parseISO(profile.joinedAt), 'MMM yyyy') : '—'}
@@ -401,13 +543,32 @@ const UserProfile = () => {
                       </motion.button>
                     </>
                   ) : (
-                    <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-                      onClick={() => setIsEditing(true)}
-                      className="btn-electric btn-electric-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest"
-                    >
-                      <span className="btn-electric-glow" />
-                      <Edit2 size={14} /> Edit Profile
-                    </motion.button>
+                    <div className="flex gap-2">
+                      {profile.authProvider === 'GOOGLE' ? (
+                        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                          onClick={() => setShowSetPasswordModal(true)}
+                          className="btn-electric flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08] hover:text-indigo-400 transition-all"
+                        >
+                          <span className="btn-electric-glow" />
+                          <KeyRound size={14} /> Set Local Password
+                        </motion.button>
+                      ) : (
+                        <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                          onClick={() => setShowPasswordModal(true)}
+                          className="btn-electric flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-white/[0.04] text-slate-400 border border-white/[0.06] hover:bg-white/[0.08] hover:text-white transition-all"
+                        >
+                          <span className="btn-electric-glow" />
+                          <Lock size={14} /> Change Password
+                        </motion.button>
+                      )}
+                      <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                        onClick={() => setIsEditing(true)}
+                        className="btn-electric btn-electric-primary flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest"
+                      >
+                        <span className="btn-electric-glow" />
+                        <Edit2 size={14} /> Edit Profile
+                      </motion.button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -443,9 +604,46 @@ const UserProfile = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3"
+              className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4"
             >
               <div className="md:col-span-2">
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                    <UserIcon size={12} /> Username
+                  </label>
+                  {editForm.username !== profile.username && (
+                    <>
+                      {usernameStatus === 'taken' && <span className="text-[9px] font-bold text-rose-500 uppercase animate-pulse">Already Taken</span>}
+                      {usernameStatus === 'available' && <span className="text-[9px] font-bold text-emerald-500 uppercase flex items-center gap-1"><Check size={10} /> Available</span>}
+                      {usernameStatus === 'too-short' && <span className="text-[9px] font-bold text-slate-600 uppercase">Min 5 chars</span>}
+                    </>
+                  )}
+                </div>
+                <div className="relative">
+                  <input 
+                    type="text"
+                    placeholder="New username"
+                    value={editForm.username}
+                    onChange={e => {
+                      const val = e.target.value.toLowerCase().replace(/\s/g, '');
+                      setEditForm({ ...editForm, username: val });
+                    }}
+                    className={`input-glass h-11 pr-10 transition-all ${
+                      editForm.username !== profile.username && usernameStatus === 'taken' ? 'border-rose-500/50' : 
+                      editForm.username !== profile.username && usernameStatus === 'available' ? 'border-emerald-500/50' : ''
+                    }`}
+                  />
+                  {editForm.username !== profile.username && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {usernameStatus === 'loading' && <Loader2 className="animate-spin text-slate-600" size={14} />}
+                      {usernameStatus === 'taken' && <XCircle className="text-rose-500" size={14} />}
+                      {usernameStatus === 'available' && <CheckCircle2 className="text-emerald-500" size={14} />}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block ml-1">Short Bio</label>
                 <textarea
                   placeholder="Write a short bio about yourself..."
                   value={editForm.bio}
@@ -454,22 +652,31 @@ const UserProfile = () => {
                 />
               </div>
               <div className="relative">
-                <Github className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
-                <input type="text" placeholder="GitHub URL" value={editForm.githubUrl}
-                  onChange={e => setEditForm({ ...editForm, githubUrl: e.target.value })}
-                  className="input-glass pl-9" />
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block ml-1">GitHub</label>
+                <div className="relative">
+                  <Github className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                  <input type="text" placeholder="GitHub URL" value={editForm.githubUrl}
+                    onChange={e => setEditForm({ ...editForm, githubUrl: e.target.value })}
+                    className="input-glass pl-9" />
+                </div>
               </div>
               <div className="relative">
-                <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
-                <input type="text" placeholder="LinkedIn URL" value={editForm.linkedinUrl}
-                  onChange={e => setEditForm({ ...editForm, linkedinUrl: e.target.value })}
-                  className="input-glass pl-9" />
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block ml-1">LinkedIn</label>
+                <div className="relative">
+                  <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                  <input type="text" placeholder="LinkedIn URL" value={editForm.linkedinUrl}
+                    onChange={e => setEditForm({ ...editForm, linkedinUrl: e.target.value })}
+                    className="input-glass pl-9" />
+                </div>
               </div>
               <div className="relative md:col-span-2">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
-                <input type="text" placeholder="Portfolio URL" value={editForm.portfolioUrl}
-                  onChange={e => setEditForm({ ...editForm, portfolioUrl: e.target.value })}
-                  className="input-glass pl-9" />
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 block ml-1">Portfolio</label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                  <input type="text" placeholder="Portfolio URL" value={editForm.portfolioUrl}
+                    onChange={e => setEditForm({ ...editForm, portfolioUrl: e.target.value })}
+                    className="input-glass pl-9" />
+                </div>
               </div>
             </motion.div>
           )}
@@ -753,6 +960,264 @@ const UserProfile = () => {
                 </motion.button>
               </div>
             </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ══ SET LOCAL PASSWORD MODAL (For Google Users) ══ */}
+      {showSetPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="stark-card w-full max-w-md overflow-hidden bg-[#0a0e16]"
+          >
+            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+              <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                <KeyRound size={16} className="text-indigo-400" /> Set Security Access
+              </h3>
+              <button 
+                onClick={() => { setShowSetPasswordModal(false); setOtpSent(false); }}
+                className="p-2 hover:bg-white/[0.05] rounded-lg text-slate-500 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {!otpSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto border border-indigo-500/20">
+                    <Mail size={32} className="text-indigo-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="text-white font-bold text-sm uppercase tracking-widest">Verify Identity</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      To set a local password, we need to verify your ownership of <strong className="text-slate-300">{profile.email}</strong>.
+                    </p>
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleRequestOtp}
+                    disabled={otpLoading}
+                    className="w-full btn-electric btn-electric-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2"
+                  >
+                    <span className="btn-electric-glow" />
+                    {otpLoading ? <Loader2 size={16} className="animate-spin" /> : 'Send Verification Code'}
+                  </motion.button>
+                </div>
+              ) : (
+                <form onSubmit={handleSetPassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Verification Code</label>
+                    <div className="relative">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                      <input
+                        type="text"
+                        required
+                        value={oauthPasswordForm.otp}
+                        onChange={(e) => setOauthPasswordForm({ ...oauthPasswordForm, otp: e.target.value })}
+                        className="input-glass pl-10 tracking-[0.5em] text-center font-bold"
+                        placeholder="000000"
+                        maxLength={6}
+                      />
+                    </div>
+                    <p className="text-[9px] text-slate-500 mt-1 ml-1">Code sent to {profile.email}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">New Local Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                      <input
+                        type={showPasswords.new ? "text" : "password"}
+                        required
+                        value={oauthPasswordForm.newPassword}
+                        onChange={(e) => setOauthPasswordForm({ ...oauthPasswordForm, newPassword: e.target.value })}
+                        className="input-glass pl-10 pr-10"
+                        placeholder="Minimum 8 characters"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                      >
+                        {showPasswords.new ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Confirm Password</label>
+                    <div className="relative">
+                      <CheckCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                      <input
+                        type={showPasswords.confirm ? "text" : "password"}
+                        required
+                        value={oauthPasswordForm.confirmPassword}
+                        onChange={(e) => setOauthPasswordForm({ ...oauthPasswordForm, confirmPassword: e.target.value })}
+                        className="input-glass pl-10 pr-10"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                      >
+                        {showPasswords.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="submit"
+                      disabled={passwordLoading}
+                      className="flex-1 btn-electric btn-electric-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2"
+                    >
+                      <span className="btn-electric-glow" />
+                      {passwordLoading ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> Set Password</>}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={() => { setShowSetPasswordModal(false); setOtpSent(false); }}
+                      className="px-6 py-3 btn-electric bg-white/[0.04] text-slate-400 border border-white/[0.06] rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/[0.08]"
+                    >
+                      <span className="btn-electric-glow" />
+                      Cancel
+                    </motion.button>
+                  </div>
+                  <div className="text-center">
+                    <button 
+                      type="button" 
+                      onClick={handleRequestOtp}
+                      className="text-[9px] font-black text-indigo-400 hover:text-indigo-300 uppercase tracking-widest transition-colors"
+                    >
+                      Didn't get the code? Resend
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ══ PASSWORD CHANGE MODAL ══ */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="stark-card w-full max-w-md overflow-hidden bg-[#0a0e16]"
+          >
+            <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
+              <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
+                <Lock size={16} className="text-indigo-400" /> Change Security Protocol
+              </h3>
+              <button 
+                onClick={() => setShowPasswordModal(false)}
+                className="p-2 hover:bg-white/[0.05] rounded-lg text-slate-500 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handlePasswordChange} className="p-6 space-y-5">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Current Password</label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                  <input
+                    type={showPasswords.current ? "text" : "password"}
+                    required
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    className="input-glass pl-10 pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  >
+                    {showPasswords.current ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                  <input
+                    type={showPasswords.new ? "text" : "password"}
+                    required
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    className="input-glass pl-10 pr-10"
+                    placeholder="Minimum 8 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  >
+                    {showPasswords.new ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
+                <div className="relative">
+                  <CheckCircle2 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={15} />
+                  <input
+                    type={showPasswords.confirm ? "text" : "password"}
+                    required
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    className="input-glass pl-10 pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                  >
+                    {showPasswords.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="submit"
+                  disabled={passwordLoading}
+                  className="flex-1 btn-electric btn-electric-primary py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2"
+                >
+                  <span className="btn-electric-glow" />
+                  {passwordLoading ? <Loader2 size={16} className="animate-spin" /> : <><Save size={16} /> Update Password</>}
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-6 py-3 btn-electric bg-white/[0.04] text-slate-400 border border-white/[0.06] rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/[0.08]"
+                >
+                  <span className="btn-electric-glow" />
+                  Cancel
+                </motion.button>
+              </div>
+            </form>
           </motion.div>
         </div>
       )}

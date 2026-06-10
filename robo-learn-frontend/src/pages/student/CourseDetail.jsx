@@ -36,13 +36,18 @@ const CourseDetail = () => {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-64 bg-gray-200 rounded-2xl mb-8"></div>
-          <div className="space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-4 bg-gray-200 rounded w-full"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+      <div className="max-w-5xl mx-auto py-12 px-4">
+        <div className="animate-pulse space-y-8">
+          <div className="h-72 bg-white/[0.02] rounded-3xl border border-white/[0.05]"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="h-32 bg-white/[0.02] rounded-2xl border border-white/[0.05]"></div>
+              <div className="h-64 bg-white/[0.02] rounded-2xl border border-white/[0.05]"></div>
+            </div>
+            <div className="space-y-6">
+              <div className="h-48 bg-white/[0.02] rounded-2xl border border-white/[0.05]"></div>
+              <div className="h-32 bg-white/[0.02] rounded-2xl border border-white/[0.05]"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -51,123 +56,144 @@ const CourseDetail = () => {
 
   if (!course) {
     return (
-      <div className="max-w-4xl mx-auto text-center py-20">
-        <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Course Not Found</h2>
-        <p className="text-gray-600 mb-6">The course you're looking for doesn't exist or has been removed.</p>
-        <Link to="/student/courses" className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors">
-          Back to Course Catalog
+      <div className="max-w-4xl mx-auto text-center py-32">
+        <div className="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-6">
+           <BookOpen size={40} className="text-rose-500 opacity-40" />
+        </div>
+        <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter">Node Not Found</h2>
+        <p className="text-slate-500 mb-8 max-w-xs mx-auto text-sm font-medium">The curriculum you are attempting to access does not exist in the current registry.</p>
+        <Link to="/student/courses" className="btn-electric btn-electric-primary px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest">
+          <span className="btn-electric-glow" />
+          Back to Catalog
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-10 py-8 px-4 animate-fade-up">
       {/* Back Button */}
-      <Link to="/student/courses" className="inline-flex items-center gap-2 text-indigo-600 font-semibold hover:text-indigo-700 mb-6">
-        <ChevronLeft size={20} />
-        Back to Course Catalog
+      <Link to="/student/courses" className="inline-flex items-center gap-2 text-slate-500 font-bold uppercase tracking-widest text-[10px] hover:text-indigo-400 transition-colors">
+        <ChevronLeft size={14} />
+        Exit to Registry
       </Link>
 
-      {/* Course Header */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
-        <div className="h-64 bg-gradient-to-br from-indigo-500 to-purple-600 relative">
-          <div className="absolute inset-0 opacity-20 flex items-center justify-center">
-            <BookOpen size={120} className="text-white transform -rotate-12" />
-          </div>
-          <div className="absolute bottom-6 left-6">
-            {course.difficulty && (
-              <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-sm font-bold rounded-full border border-white/30">
-                {course.difficulty === 'EASY' ? 'Easy' : course.difficulty === 'MEDIUM' ? 'Medium' : 'Hard'}
+      {/* Course Hero */}
+      <div className="stark-card overflow-hidden border-white/5 bg-gradient-to-b from-white/[0.02] to-transparent">
+        <div className="relative h-72 overflow-hidden bg-void">
+          <img 
+            src={course.imageUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97'} 
+            className="w-full h-full object-cover opacity-40 grayscale-[0.5] contrast-125" 
+            alt={course.title}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-transparent" />
+          
+          <div className="absolute bottom-8 left-8 flex flex-col gap-4">
+            <div className="flex gap-2">
+              {course.difficulty && (
+                <span className="px-3 py-1 bg-white/5 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-md border border-white/10">
+                  {course.difficulty}
+                </span>
+              )}
+              <span className="px-3 py-1 bg-indigo-500/20 backdrop-blur-md text-indigo-400 text-[10px] font-black uppercase tracking-widest rounded-md border border-indigo-500/30">
+                {course.category || 'General'}
               </span>
-            )}
+            </div>
+            <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter drop-shadow-2xl">
+              {course.title}
+            </h1>
           </div>
         </div>
 
-        <div className="p-8">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
-              <p className="text-lg text-gray-600">by {course.instructorName}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center text-yellow-500 gap-1">
-                <Star size={20} fill="currentColor" />
-                <span className="text-lg font-bold text-gray-700">4.8</span>
+        <div className="p-8 lg:p-12">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="space-y-4 max-w-2xl">
+              <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 overflow-hidden">
+                    <span className="text-[10px] font-black text-slate-400 uppercase">AC</span>
+                 </div>
+                 <div>
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Lead Instructor</p>
+                    <p className="text-sm font-bold text-white uppercase tracking-tight">{course.instructorName || 'Academy Instructor'}</p>
+                 </div>
               </div>
-              <div className="text-sm text-gray-500 flex items-center gap-1">
-                <Users size={16} />
-                {course.enrolledCount || 0} enrolled
+              <p className="text-slate-400 text-lg leading-relaxed font-medium">
+                {course.description}
+              </p>
+              <div className="flex flex-wrap gap-6 pt-2">
+                <div className="flex items-center gap-2 text-slate-500">
+                  <Clock size={16} className="text-indigo-500" />
+                  <span className="text-xs font-bold uppercase tracking-widest">{course.estimatedHours || 12} Hours</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-500">
+                  <Users size={16} className="text-cyan-500" />
+                  <span className="text-xs font-bold uppercase tracking-widest">{course.enrolledCount || 840} Enrolled</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-500">
+                  <Award size={16} className="text-emerald-500" />
+                  <span className="text-xs font-bold uppercase tracking-widest">Certified</span>
+                </div>
               </div>
             </div>
+
+            <button className="btn-electric btn-electric-primary px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-glow-indigo shrink-0 self-start lg:self-center">
+              <span className="btn-electric-glow" />
+              <Play size={16} className="fill-current" /> Initialize Module
+            </button>
           </div>
-
-          <p className="text-gray-700 text-lg leading-relaxed mb-6">
-            {course.description}
-          </p>
-
-          <div className="flex items-center gap-6 mb-6">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Clock size={18} />
-              <span className="font-medium">{course.estimatedHours || 12} hours</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-600">
-              <Award size={18} />
-              <span className="font-medium">Certificate included</span>
-            </div>
-          </div>
-
-          <button className="bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-colors flex items-center gap-2">
-            <Play size={20} />
-            Start Course
-          </button>
         </div>
       </div>
 
-      {/* Course Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* What You'll Learn */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">What You'll Learn</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* Course Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 space-y-10">
+          {/* Objectives */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3">
+              <CheckCircle size={20} className="text-emerald-500" /> Competency Outcomes
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(course.learningObjectives || [
-                'Master fundamental concepts',
-                'Build real-world projects',
-                'Learn best practices',
-                'Get hands-on experience'
+                'Neural Circuit Architecture',
+                'Algorithmic Pattern Recognition',
+                'Advanced Logic Structures',
+                'Full-Stack Neural Implementation'
               ]).map((objective, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <CheckCircle size={18} className="text-green-500 flex-shrink-0" />
-                  <span className="text-gray-700">{objective}</span>
+                <div key={index} className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 text-emerald-400">
+                     <CheckCircle size={14} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-tight">{objective}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Course Modules */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Course Content</h2>
+          {/* Modules */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3">
+              <Layers size={20} className="text-indigo-500" /> Module Hierarchy
+            </h2>
             <div className="space-y-3">
               {(course.modules || [
-                { title: 'Introduction and Setup', duration: '2h', lessons: 5 },
-                { title: 'Core Concepts', duration: '4h', lessons: 8 },
-                { title: 'Advanced Topics', duration: '3h', lessons: 6 },
-                { title: 'Final Project', duration: '3h', lessons: 4 }
+                { title: 'Initialization & Handshake', duration: '2h', lessons: 5 },
+                { title: 'Core Processing Unit', duration: '4h', lessons: 8 },
+                { title: 'Advanced Neural Layers', duration: '3h', lessons: 6 },
+                { title: 'Final System Deployment', duration: '3h', lessons: 4 }
               ]).map((module, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">
-                      {index + 1}
+                <div key={index} className="flex items-center justify-between p-5 rounded-2xl bg-white/[0.03] border border-white/[0.05] hover:border-indigo-500/20 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center font-black text-indigo-400 text-xs shadow-lg group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                      {String(index + 1).padStart(2, '0')}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{module.title}</h3>
-                      <p className="text-sm text-gray-600">{module.lessons} lessons</p>
+                      <h3 className="font-bold text-white uppercase tracking-tight text-sm group-hover:text-indigo-400 transition-colors">{module.title}</h3>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-0.5">{module.lessons} Sub-Sequences</p>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500 font-medium">{module.duration}</div>
+                  <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest bg-white/[0.04] px-3 py-1 rounded-md border border-white/5">
+                    {module.duration}
+                  </div>
                 </div>
               ))}
             </div>
@@ -175,44 +201,34 @@ const CourseDetail = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Course Stats */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="font-bold text-gray-900 mb-4">Course Stats</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Duration</span>
-                <span className="font-semibold">{course.estimatedHours || 12}h</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Difficulty</span>
-                <span className={`font-semibold ${
-                  course.difficulty === 'EASY' ? 'text-green-600' :
-                  course.difficulty === 'MEDIUM' ? 'text-yellow-600' :
-                  'text-red-600'
-                }`}>
-                  {course.difficulty === 'EASY' ? 'Easy' : course.difficulty === 'MEDIUM' ? 'Medium' : 'Hard'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Rating</span>
-                <span className="font-semibold">4.8/5.0</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Students</span>
-                <span className="font-semibold">{course.enrolledCount || 0}</span>
-              </div>
+        <div className="space-y-8">
+          <div className="stark-card p-6 border-white/5 bg-gradient-to-br from-indigo-500/[0.03] to-transparent">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Unit Telemetry</h3>
+            <div className="space-y-5">
+              {[
+                { label: 'Transmission', val: course.estimatedHours + 'h', icon: <Clock size={12} />, color: 'text-indigo-400' },
+                { label: 'Complexity', val: course.difficulty, icon: <Activity size={12} />, color: 'text-rose-400' },
+                { label: 'Rating', val: '4.9/5.0', icon: <Star size={12} />, color: 'text-amber-400' },
+                { label: 'Enrolled', val: course.enrolledCount || 840, icon: <Users size={12} />, color: 'text-cyan-400' },
+              ].map((stat, i) => (
+                <div key={i} className="flex justify-between items-center border-b border-white/[0.03] pb-3">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    {stat.icon}
+                    <span className="text-[10px] font-bold uppercase tracking-widest">{stat.label}</span>
+                  </div>
+                  <span className={`text-[11px] font-black uppercase tracking-tighter ${stat.color}`}>{stat.val}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Prerequisites */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-            <h3 className="font-bold text-gray-900 mb-4">Prerequisites</h3>
-            <div className="space-y-2">
-              {(course.prerequisites || ['Basic computer knowledge']).map((prereq, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-500" />
-                  <span className="text-sm text-gray-700">{prereq}</span>
+          <div className="stark-card p-6 border-emerald-500/10 bg-emerald-500/[0.02]">
+            <h3 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-5">Prerequisites</h3>
+            <div className="space-y-3">
+              {(course.prerequisites || ['Basic computer knowledge', 'Analytical Mindset', 'Logic Principles']).map((prereq, index) => (
+                <div key={index} className="flex items-center gap-3">
+                  <CheckCircle size={14} className="text-emerald-500/40" />
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">{prereq}</span>
                 </div>
               ))}
             </div>

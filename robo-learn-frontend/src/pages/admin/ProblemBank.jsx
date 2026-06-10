@@ -8,11 +8,14 @@ import {
   X, 
   Search,
   Filter,
-  Loader
+  Loader,
+  Rocket
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const ProblemBank = () => {
+  const navigate = useNavigate();
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -26,7 +29,8 @@ const ProblemBank = () => {
     difficulty: 'EASY',
     courseId: '',
     tags: '',
-    boilerplateCode: ''
+    boilerplateCode: '',
+    driverCode: ''
   });
 
   const [testCases, setTestCases] = useState([
@@ -59,7 +63,8 @@ const ProblemBank = () => {
         difficulty: problem.difficulty,
         courseId: problem.courseId || '',
         tags: problem.tags ? problem.tags.join(', ') : '',
-        boilerplateCode: problem.boilerplateCode || ''
+        boilerplateCode: problem.boilerplateCode || '',
+        driverCode: problem.driverCode || ''
       });
       setTestCases(problem.testCases && problem.testCases.length > 0 
         ? problem.testCases 
@@ -68,7 +73,7 @@ const ProblemBank = () => {
     } else {
       setEditMode(false);
       setCurrentProblemId(null);
-      setFormData({ title: '', description: '', difficulty: 'EASY', courseId: '', tags: '', boilerplateCode: '' });
+      setFormData({ title: '', description: '', difficulty: 'EASY', courseId: '', tags: '', boilerplateCode: '', driverCode: '' });
       setTestCases([{ input: '', expectedOutput: '', isHidden: false }]);
     }
     setShowForm(true);
@@ -148,13 +153,22 @@ const ProblemBank = () => {
           <h2 className="text-xl font-semibold text-slate-100 tracking-tight">Problem Bank</h2>
           <p className="text-slate-500 text-sm mt-1">Create and manage algorithmic challenges with test cases.</p>
         </div>
-        <button
-          onClick={() => handleOpenForm()}
-          className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)]"
-        >
-          <Plus size={16} />
-          <span>New Challenge</span>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => navigate('builder')}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50 px-4 py-2 rounded-lg text-sm font-medium transition-all group"
+          >
+            <Rocket size={16} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+            <span>Launch Advanced Builder</span>
+          </button>
+          <button
+            onClick={() => handleOpenForm()}
+            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-[0_0_20px_-5px_rgba(99,102,241,0.3)]"
+          >
+            <Plus size={16} />
+            <span>New Challenge</span>
+          </button>
+        </div>
       </div>
 
       {/* Enterprise Table Container */}
@@ -335,6 +349,17 @@ const ProblemBank = () => {
                     placeholder="function solution(nums, target) {&#10;  // Write your code here&#10;}"
                     value={formData.boilerplateCode}
                     onChange={(e) => setFormData({ ...formData, boilerplateCode: e.target.value })}
+                 />
+              </div>
+
+              <div>
+                 <label className="block text-xs font-medium text-slate-400 mb-1.5">Hidden Driver Code</label>
+                 <textarea
+                    rows="5"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700/50 rounded-lg focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none font-mono text-sm text-rose-300 resize-none placeholder-slate-700 transition-all"
+                    placeholder="// Driver code to execute user solution..."
+                    value={formData.driverCode}
+                    onChange={(e) => setFormData({ ...formData, driverCode: e.target.value })}
                  />
               </div>
 

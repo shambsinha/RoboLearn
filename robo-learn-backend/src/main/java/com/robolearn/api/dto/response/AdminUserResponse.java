@@ -1,5 +1,6 @@
 package com.robolearn.api.dto.response;
 
+import com.robolearn.api.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,10 +16,10 @@ public class AdminUserResponse {
     private Long id;
     private String username;
     private String email;
-    private String role;
+    private UserRole role;
     private LocalDateTime joinedAt;
     private boolean isSuspended;
-    private int progressPercentage; // derived metric
+    private int progressPercentage; 
     private long coursesEnrolled;
     private long problemsSolved;
     private int xpPoints;

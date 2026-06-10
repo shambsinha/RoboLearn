@@ -13,6 +13,8 @@ import com.robolearn.api.repository.TestCaseRepository;
 import com.robolearn.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +37,9 @@ public class SubmissionService {
     private final com.robolearn.api.repository.UserSolutionRepository userSolutionRepository;
     private final CourseService courseService;
     private final com.robolearn.api.repository.CourseRepository courseRepository;
+    private final DashboardService dashboardService;
 
+    @CacheEvict(value = "submissionHistory", key = "#userEmail + '-' + #request.problemId")
     public String submitCode(String userEmail, CodeSubmissionRequest request) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -52,20 +56,15 @@ public class SubmissionService {
                 .submittedAt(LocalDateTime.now())
                 .build();
 
-        // Only save to DB if it's a real submission, not just a "Run"
         if (!request.isRunOnly()) {
             submission = submissionRepository.save(submission);
         } else {
-            // For RUN_ONLY, generate a temporary ID since it's not saved to MongoDB
             submission.setId("RUN_" + java.util.UUID.randomUUID().toString());
         }
 
         if (request.isRunOnly()) {
-            // SYNC EXECUTION: Bypass Kafka for fast feedback
-            log.info("[PIPELINE-DEBUG] 0. Received RUN-ONLY request. Executing synchronously for user: {}", user.getId());
-            executeSynchronously(submission, problem, user.getId());
+            executeSynchronously(submission, problem, user.getId(), true);
         } else {
-            // ASYNC EXECUTION: Use Kafka for final submissions
             try {
                 com.robolearn.api.dto.request.CodeSubmissionMessage message = com.robolearn.api.dto.request.CodeSubmissionMessage.builder()
                         .submissionId(submission.getId())
@@ -73,24 +72,30 @@ public class SubmissionService {
                         .userId(user.getId())
                         .code(submission.getCode())
                         .language(submission.getLanguage())
+                        .runOnly(false)
                         .build();
 
                 kafkaTemplate.send(com.robolearn.api.config.KafkaConfig.SUBMISSIONS_TOPIC, message);
             } catch (Exception e) {
                 log.error("Kafka unavailable, falling back to sync execution: {}", e.getMessage());
-                executeSynchronously(submission, problem, user.getId());
+                executeSynchronously(submission, problem, user.getId(), false);
             }
         }
 
         return submission.getId();
     }
 
-    private void executeSynchronously(CodeSubmission submission, CodingProblem problem, Long userId) {
+    private void executeSynchronously(CodeSubmission submission, CodingProblem problem, Long userId, boolean isRunOnly) {
         try {
-            List<TestCase> testCases = testCaseRepository.findAllById(problem.getTestCaseIds());
+            List<TestCase> allTestCases = testCaseRepository.findAllById(problem.getTestCaseIds());
+            List<TestCase> testCasesToRun = isRunOnly 
+                ? allTestCases.stream().filter(tc -> !tc.isHidden()).toList()
+                : allTestCases;
+
             CodeSubmission result = executionEngine.execute(
                     submission,
-                    testCases
+                    testCasesToRun,
+                    problem
             );
 
             if (result == null) {
@@ -106,20 +111,19 @@ public class SubmissionService {
                     .memoryUsageMb(result.getMemoryUsageMb())
                     .logs(result.getLogs())
                     .result(result.getResult())
-                    .totalTestCases(result.getTotalTestCases())
+                    .totalTestCases(isRunOnly ? testCasesToRun.size() : result.getTotalTestCases())
                     .passedTestCases(result.getPassedTestCases())
                     .submittedAt(result.getSubmittedAt())
                     .testCaseResults(result.getTestCaseResults() == null ? null : result.getTestCaseResults().stream()
                             .map(r -> SubmissionResponse.TestCaseResult.builder()
                                     .id(r.getTestCaseId())
                                     .status(r.getStatus())
-                                    .actualOutput(r.getActualOutput())
+                                    .actualOutput(r.isHidden() ? null : r.getActualOutput())
                                     .isHidden(r.isHidden())
                                     .build())
                             .toList())
                     .build();
 
-            // Register attempt date for real submissions
             if (submission.getId() != null && !submission.getId().startsWith("RUN_")) {
                 userRepository.findById(userId).ifPresent(u -> {
                     u.getAttemptedDates().add(java.time.LocalDate.now().toString());
@@ -127,15 +131,11 @@ public class SubmissionService {
                 });
             }
 
-            // CALCULATE PERCENTILES IF PASSED
             if ("PASS".equals(result.getStatus())) {
-                // Only calculate percentiles and award XP for real submissions
                 if (submission.getId() != null && !submission.getId().startsWith("RUN_")) {
                     calculatePercentiles(response, problem.getId());
                     awardXp(userId, problem, submission.getCode(), submission.getLanguage());
                 }
-                
-                // Get updated user XP
                 userRepository.findById(userId).ifPresent(u -> response.setUserXp(u.getXp()));
             }
 
@@ -151,11 +151,13 @@ public class SubmissionService {
             User user = userRepository.findById(userId).orElse(null);
             if (user == null) return;
 
-            // One-time reward check using relational database for exact tracking
             if (userSolutionRepository.existsByUserIdAndProblemId(userId, problem.getId())) {
                 log.info("User {} already solved problem {}. No XP awarded.", userId, problem.getId());
                 return;
             }
+
+            // Evict dashboard cache
+            dashboardService.evictStudentMetrics(user.getEmail());
 
             int xpToAdd = switch (problem.getDifficulty().toUpperCase()) {
                 case "EASY" -> 50;
@@ -164,7 +166,6 @@ public class SubmissionService {
                 default -> 50;
             };
 
-            // Save to Relational DB (Neon)
             com.robolearn.api.entity.UserSolution solution = com.robolearn.api.entity.UserSolution.builder()
                     .userId(userId)
                     .problemId(problem.getId())
@@ -178,23 +179,17 @@ public class SubmissionService {
             user.setXp(user.getXp() + xpToAdd);
             user.getSolvedProblemIds().add(problem.getId());
 
-            // Update difficulty counts and streak
             String difficulty = problem.getDifficulty().toUpperCase();
             if (difficulty.contains("EASY")) user.setSolvedEasy(user.getSolvedEasy() + 1);
             else if (difficulty.contains("MEDIUM") || difficulty.contains("MODERATE")) user.setSolvedMedium(user.getSolvedMedium() + 1);
             else if (difficulty.contains("HARD") || difficulty.contains("DIFFICULT")) user.setSolvedHard(user.getSolvedHard() + 1);
             else user.setSolvedEasy(user.getSolvedEasy() + 1);
 
-            // Use current date for streak
             String today = java.time.LocalDate.now().toString();
             user.getStreakDates().add(today);
 
             userRepository.save(user);
             
-            log.info("Awarded {} XP to user {} for solving {} problem {}. Solution persisted to Neon.", 
-                     xpToAdd, userId, problem.getDifficulty(), problem.getId());
-
-            // NEW: Automatically mark as complete in all courses that contain this problem
             try {
                 String problemIdStr = problem.getId().toString();
                 courseRepository.findAll().forEach(course -> {
@@ -259,6 +254,7 @@ public class SubmissionService {
                 .build();
     }
 
+    @Cacheable(value = "submissionHistory", key = "#email + '-' + #problemId")
     public List<SubmissionResponse> getProblemSubmissions(String email, Long problemId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));

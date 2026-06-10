@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Sparkles, BookOpen, ChevronRight, Layers, Play, Terminal,
   Award, Zap, Flame, CheckCircle2, Trophy, Star, Rocket, Users,
   BrainCircuit, Code2, ShieldCheck, ArrowRight, Globe, Cpu, Timer,
+  Activity, ZapOff
 } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
 import { studentApi } from '../../api/studentApi';
@@ -18,6 +19,10 @@ const fadeUp = (d = 0) => ({
 
 const StudentDashboard = () => {
   const { user } = useAuthStore();
+  const username = useMemo(() => {
+    return user?.username || JSON.parse(localStorage.getItem('user'))?.username || "Learner";
+  }, [user]);
+
   const [data, setData] = useState({
     coursesEnrolled: 0, problemsSolved: 0, activeAiSequences: 0,
     xpPoints: 0, dailyStreak: 0, recentActivity: [],
@@ -40,16 +45,26 @@ const StudentDashboard = () => {
     } finally { setLoading(false); }
   };
 
+  const charVariants = {
+    initial: { opacity: 0, scale: 0.5, filter: 'blur(10px)' },
+    animate: { 
+      opacity: 1, 
+      scale: 1, 
+      filter: 'blur(0px)',
+      transition: { type: 'spring', stiffness: 200, damping: 12 }
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh] scanline-container">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-12 h-12">
             <div className="absolute inset-0 rounded-full border border-white/[0.06]" />
             <div className="absolute inset-0 rounded-full border border-transparent border-t-cyan-500 animate-spin" />
             <div className="absolute inset-[4px] rounded-full border border-transparent border-t-indigo-400 animate-spin [animation-duration:1.4s] [animation-direction:reverse]" />
           </div>
-          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">Synchronizing Node…</p>
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] animate-pulse">Synchronizing Node…</p>
         </div>
       </div>
     );
@@ -58,23 +73,56 @@ const StudentDashboard = () => {
   return (
     <div className="space-y-16 max-w-7xl mx-auto py-8">
 
-      {/* ── Welcome + Live Ticker ── */}
-      <motion.div {...fadeUp(0)}>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-2">
-          <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, <span className="text-gradient-cyan">{user?.username}</span>
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Your neural learning environment is fully operational.</p>
+      {/* ── Welcome Header (Enhanced) ── */}
+      <div className="relative">
+        <div className="absolute -left-20 -top-20 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        
+        <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8 relative z-10">
+          <div className="space-y-2">
+            <motion.div initial={{ width: 0 }} animate={{ width: 40 }} className="h-1 bg-indigo-500 rounded-full mb-4" />
+            
+            <div className="flex flex-col">
+              <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mb-2 block">
+                Access Protocol Established
+              </motion.span>
+              
+              <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter flex flex-wrap items-center gap-x-4">
+                <span className="text-zinc-700">Welcome,</span>
+                <span className="relative inline-flex flex-wrap items-center">
+                  {username.split("").map((char, i) => (
+                    <motion.span 
+                      key={i} 
+                      variants={charVariants}
+                      initial="initial"
+                      animate="animate"
+                      className="text-gradient-cyan drop-shadow-[0_0_30px_rgba(34,211,238,0.3)]"
+                    >
+                      {char}
+                    </motion.span>
+                  ))}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                    className="w-2 md:w-3 h-8 md:h-12 bg-cyan-500 ml-2 shadow-glow-cyan"
+                  />
+                </span>
+              </h1>
+            </div>
+            
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-sm text-slate-500 max-w-md">
+              Your neural learning environment is fully operational.
+            </motion.p>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-indigo-500/20 bg-indigo-500/[0.06]">
+
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1, type: 'spring' }} className="flex items-center gap-2 px-4 py-2 rounded-full border border-indigo-500/20 bg-indigo-500/[0.06]">
             <Zap size={13} className="text-indigo-400 animate-pulse" />
             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Neural Link Active</span>
-          </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* ── Scrolling Marquee Ticker ── */}
+      {/* ── Live Ticker Marquee ── */}
       <div className="relative overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.02] py-2.5">
         <div className="marquee-track">
           {[...Array(2)].map((_, k) => (

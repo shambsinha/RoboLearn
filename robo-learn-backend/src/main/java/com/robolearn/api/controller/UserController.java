@@ -1,5 +1,7 @@
 package com.robolearn.api.controller;
 
+import com.robolearn.api.dto.request.ChangePasswordRequest;
+import com.robolearn.api.dto.request.SetPasswordRequest;
 import com.robolearn.api.dto.request.UpdateProfileRequest;
 import com.robolearn.api.dto.response.UserProfileResponse;
 import com.robolearn.api.service.UserService;
@@ -32,6 +34,36 @@ public class UserController {
         return ResponseEntity.ok(userService.updateProfile(userDetails.getUsername(), request));
     }
 
+    @PostMapping("/profile/change-password")
+    public ResponseEntity<?> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody ChangePasswordRequest request) {
+        try {
+            userService.changePassword(userDetails.getUsername(), request);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/profile/request-set-password-otp")
+    public ResponseEntity<?> requestSetPasswordOtp(@AuthenticationPrincipal UserDetails userDetails) {
+        userService.requestProfileOtp(userDetails.getUsername());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/profile/set-password")
+    public ResponseEntity<?> setPassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody SetPasswordRequest request) {
+        try {
+            userService.setPassword(userDetails.getUsername(), request);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PutMapping("/profile/image")
     public ResponseEntity<UserProfileResponse> uploadProfileImage(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -60,8 +92,6 @@ public class UserController {
             cloudinaryService.deleteImageByUrl(currentProfile.getProfilePictureUrl());
             UpdateProfileRequest updateRequest = new UpdateProfileRequest();
             updateRequest.setProfilePictureUrl(""); // Use empty string to indicate removal (or handle null carefully in service)
-            // UserService's updateProfile ignores null fields, so we might need a specific method or handle empty string.
-            // Let's pass empty string. If UserService skips nulls, we'll need to check if it handles empty string.
             return ResponseEntity.ok(userService.updateProfile(userDetails.getUsername(), updateRequest));
         }
         return ResponseEntity.ok(currentProfile);

@@ -18,6 +18,9 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (user.getRole() == null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_STUDENT")); 
+        }
         return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
     }
 
@@ -28,7 +31,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getEmail(); // Using email as username for authentication
+        return user.getEmail(); // Reverting to email as primary identity for stable JWT
     }
 
     @Override

@@ -28,6 +28,4 @@ public class RegisterRequest {
     private String password;
 
     private UserRole role; // Optional, default handled in service
-
-    private String onboardingStatus; // Optional, e.g., "1st Year", "2nd Year", etc.
 }

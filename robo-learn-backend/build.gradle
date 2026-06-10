@@ -130,6 +130,13 @@ dependencies {
     // WebSockets
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    // Email Support
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // Redis & Caching
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -140,11 +147,15 @@ dependencies {
     // Cloudinary SDK
     implementation 'com.cloudinary:cloudinary-http44:1.36.0'
 
+    // Google API Client for Token Verification
+    implementation 'com.google.api-client:google-api-client:2.2.0'
+
     // Spring AI (for OpenAI integration) - VERSION HANDLED BY BOM NOW
     implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
 
     // JSON Processing (Jackson)
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // H2 Database (for testing)
     runtimeOnly 'com.h2database:h2'

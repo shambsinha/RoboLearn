@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -36,12 +40,15 @@ public class CourseService {
     private final CodingProblemRepository codingProblemRepository;
     private final com.robolearn.api.repository.UserCurriculumProgressRepository progressRepository;
     private final CloudinaryService cloudinaryService;
+    private final DashboardService dashboardService;
 
     private String generateId() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    @CacheEvict(value = "courses", allEntries = true)
     public CourseResponse createCourse(CourseRequest request) {
+        dashboardService.evictAdminMetrics();
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User instructor = userDetails.getUser();
 
@@ -65,7 +72,12 @@ public class CourseService {
         return mapToCourseResponse(courseRepository.save(course));
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "courses", allEntries = true),
+        @CacheEvict(value = "courseDetails", key = "#courseId")
+    })
     public CourseResponse updateCourse(String courseId, CourseRequest request) {
+        dashboardService.evictAdminMetrics();
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
 
@@ -85,13 +97,19 @@ public class CourseService {
         return mapToCourseResponseLight(courseRepository.save(course));
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "courses", allEntries = true),
+        @CacheEvict(value = "courseDetails", key = "#courseId")
+    })
     public void deleteCourse(String courseId) {
+        dashboardService.evictAdminMetrics();
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException("Course not found");
         }
         courseRepository.deleteById(courseId);
     }
 
+    @CacheEvict(value = "courseDetails", key = "#courseId")
     public ModuleResponse addModule(String courseId, ModuleRequest request) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -113,6 +131,7 @@ public class CourseService {
         return mapToModuleResponse(module);
     }
 
+    @CacheEvict(value = "courseDetails", allEntries = true) 
     public void deleteModule(String moduleId) {
         List<Course> courses = courseRepository.findAll();
         for (Course course : courses) {
@@ -127,17 +146,20 @@ public class CourseService {
         throw new ResourceNotFoundException("Module not found");
     }
 
+    @Cacheable(value = "courses")
     public List<CourseResponse> getAllCourses() {
         List<Course> courses = courseRepository.findAll();
         return mapToCourseResponseList(courses);
     }
 
+    @Cacheable(value = "courseDetails", key = "#courseId")
     public CourseResponse getCourseById(String courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
         return mapToCourseResponse(course);
     }
 
+    @CacheEvict(value = "courseDetails", key = "#courseId")
     public void addProblemToCourse(String courseId, Long problemId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -156,6 +178,7 @@ public class CourseService {
         }
     }
 
+    @CacheEvict(value = "courseDetails", key = "#courseId")
     public void removeProblemFromCourse(String courseId, Long problemId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
@@ -177,9 +200,12 @@ public class CourseService {
         return codingProblemRepository.findAllById(course.getProblemIds());
     }
 
-    public void enrollInCourse(String courseId) {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findById(userDetails.getUser().getId())
+    @Caching(evict = {
+        @CacheEvict(value = "enrolledCourses", key = "#email"),
+        @CacheEvict(value = "studentDashboard", key = "#email")
+    })
+    public void enrollInCourse(String email, String courseId) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!courseRepository.existsById(courseId)) {
@@ -191,11 +217,12 @@ public class CourseService {
         }
         user.getEnrolledCourseIds().add(courseId);
         userRepository.save(user);
+        dashboardService.evictAdminMetrics();
     }
 
-    public List<CourseResponse> getEnrolledCourses() {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findById(userDetails.getUser().getId())
+    @Cacheable(value = "enrolledCourses", key = "#email")
+    public List<CourseResponse> getEnrolledCourses(String email) {
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getEnrolledCourseIds() == null || user.getEnrolledCourseIds().isEmpty()) {
@@ -238,9 +265,11 @@ public class CourseService {
                 .build();
     }
 
-    public void markItemComplete(String courseId, String moduleId, Integer itemOrder, String type) {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getUser().getId();
+    @CacheEvict(value = "courseProgress", key = "#courseId + '-' + #email")
+    public void markItemComplete(String email, String courseId, String moduleId, Integer itemOrder, String type) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Long userId = user.getId();
 
         if ("PROBLEM".equalsIgnoreCase(type)) {
             throw new RuntimeException("Problems must be completed by submitting correct code.");
@@ -259,6 +288,7 @@ public class CourseService {
         }
     }
 
+    @CacheEvict(value = "courseProgress", allEntries = true) 
     public void markProblemComplete(Long userId, String courseId, String moduleId, Integer itemOrder) {
         if (!progressRepository.existsByUserIdAndCourseIdAndModuleIdAndItemOrder(userId, courseId, moduleId, itemOrder)) {
             com.robolearn.api.entity.UserCurriculumProgress progress = com.robolearn.api.entity.UserCurriculumProgress.builder()
@@ -273,9 +303,11 @@ public class CourseService {
         }
     }
 
-    public java.util.Set<String> getUserCourseProgress(String courseId) {
-        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long userId = userDetails.getUser().getId();
+    @Cacheable(value = "courseProgress", key = "#courseId + '-' + #email")
+    public java.util.Set<String> getUserCourseProgress(String email, String courseId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Long userId = user.getId();
 
         return progressRepository.findByUserIdAndCourseId(userId, courseId).stream()
                 .map(p -> p.getModuleId() + "-" + p.getItemOrder())
@@ -288,7 +320,6 @@ public class CourseService {
             if (course.getModules() == null) continue;
             for (Module module : course.getModules()) {
                 if (module.getModuleId().equals(moduleId)) {
-                    // Extract old image URLs for diffing
                     java.util.Set<String> oldImageUrls = extractImageUrls(module.getItems());
 
                     List<Module.CurriculumItem> items = requests.stream()
@@ -300,10 +331,8 @@ public class CourseService {
                                     .build())
                             .collect(Collectors.toList());
 
-                    // Extract new image URLs
                     java.util.Set<String> newImageUrls = extractImageUrls(items);
 
-                    // Find deleted images and remove from Cloudinary
                     for (String oldUrl : oldImageUrls) {
                         if (!newImageUrls.contains(oldUrl)) {
                             cloudinaryService.deleteImageByUrl(oldUrl);

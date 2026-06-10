@@ -22,4 +22,5 @@ public class ProblemRequest {
     private String courseId;
     private List<String> tags;
     private String boilerplateCode;
+    private String driverCode;
 }

@@ -91,7 +91,7 @@ const CourseCatalog = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="bg-gray-900 rounded-xl h-64 border border-gray-800 animate-pulse"></div>
+            <div key={i} className="bg-white/[0.02] rounded-xl h-64 border border-white/[0.05] animate-pulse shadow-inner scanline-container"></div>
           ))}
         </div>
       ) : filteredCourses.length > 0 ? (

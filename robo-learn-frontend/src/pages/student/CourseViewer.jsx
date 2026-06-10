@@ -141,7 +141,7 @@ const CourseViewer = () => {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-zinc-400 gap-4">
         <div className="w-10 h-10 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
-        <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">Initializing Workspace</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Initializing Workspace</p>
       </div>
     );
   }

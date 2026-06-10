@@ -19,7 +19,6 @@ try {
         email = "admin@robolearn.com"
         password = "admin123"
         role = "ADMIN"
-        onboardingStatus = "Professional"
     } | ConvertTo-Json
     
     try {

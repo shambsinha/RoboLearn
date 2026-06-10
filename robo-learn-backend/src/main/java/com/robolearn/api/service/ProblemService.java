@@ -18,6 +18,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +32,7 @@ public class ProblemService {
     private final CourseRepository courseRepository;
     private final com.robolearn.api.repository.CodeSubmissionRepository submissionRepository;
 
+    @CacheEvict(value = "problems", allEntries = true)
     public ProblemResponse createProblem(ProblemRequest request) {
         String courseId = null;
         if (request.getCourseId() != null) {
@@ -48,11 +53,13 @@ public class ProblemService {
                 .courseId(courseId)
                 .tags(request.getTags() != null ? request.getTags() : new java.util.ArrayList<>())
                 .boilerplateCode(request.getBoilerplateCode())
+                .driverCode(request.getDriverCode())
                 .build();
 
         return mapToProblemResponse(problemRepository.save(problem));
     }
 
+    @CacheEvict(value = "problemDetails", key = "#problemId")
     public TestCaseResponse addTestCase(Long problemId, TestCaseRequest request) {
         CodingProblem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
@@ -76,6 +83,7 @@ public class ProblemService {
         return mapToTestCaseResponse(testCase);
     }
 
+    @Cacheable(value = "problems")
     public List<ProblemResponse> getAllProblems() {
         List<CodingProblem> problems = problemRepository.findAll();
         
@@ -93,12 +101,17 @@ public class ProblemService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "problemDetails", key = "#id")
     public ProblemResponse getProblemById(Long id) {
         CodingProblem problem = problemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
         return mapToProblemResponse(problem);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "problems", allEntries = true),
+        @CacheEvict(value = "problemDetails", key = "#id")
+    })
     public ProblemResponse updateProblem(Long id, ProblemRequest request) {
         CodingProblem problem = problemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
@@ -116,6 +129,7 @@ public class ProblemService {
         problem.setDifficulty(request.getDifficulty());
         problem.setTags(request.getTags() != null ? request.getTags() : new java.util.ArrayList<>());
         problem.setBoilerplateCode(request.getBoilerplateCode());
+        problem.setDriverCode(request.getDriverCode());
 
         // Clear existing test cases so the frontend can re-add the updated list without duplication
         if (problem.getTestCaseIds() != null && !problem.getTestCaseIds().isEmpty()) {
@@ -126,6 +140,10 @@ public class ProblemService {
         return mapToProblemResponse(problemRepository.save(problem));
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "problems", allEntries = true),
+        @CacheEvict(value = "problemDetails", key = "#id")
+    })
     public void deleteProblem(Long id) {
         CodingProblem problem = problemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
@@ -158,13 +176,15 @@ public class ProblemService {
                 .courseId(problem.getCourseId())
                 .tags(problem.getTags())
                 .boilerplateCode(problem.getBoilerplateCode())
+                .driverCode(problem.getDriverCode())
+                .totalTestCases(tcIds.size())
                 .testCases(testCases)
                 .build();
     }
 
     private ProblemResponse mapToProblemResponseWithCache(CodingProblem problem, java.util.Map<Long, TestCase> testCaseMap) {
-        List<TestCaseResponse> testCases = problem.getTestCaseIds() == null ? new java.util.ArrayList<>() : 
-                problem.getTestCaseIds().stream()
+        List<Long> tcIds = problem.getTestCaseIds() == null ? new java.util.ArrayList<>() : problem.getTestCaseIds();
+        List<TestCaseResponse> testCases = tcIds.stream()
                 .map(testCaseMap::get)
                 .filter(java.util.Objects::nonNull)
                 .map(this::mapToTestCaseResponse)
@@ -178,6 +198,8 @@ public class ProblemService {
                 .courseId(problem.getCourseId())
                 .tags(problem.getTags())
                 .boilerplateCode(problem.getBoilerplateCode())
+                .driverCode(problem.getDriverCode())
+                .totalTestCases(tcIds.size())
                 .testCases(testCases)
                 .build();
     }

@@ -16,12 +16,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-    # Removed explicit dialect as Hibernate 6 auto-detects it correctly now
 
-  # MongoDB Configuration (Polyglot Persistence)
+  # Unified Data Configuration (MongoDB + Redis)
   data:
     mongodb:
       uri: ${MONGODB_URI:YOUR_MONGODB_URI}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
   # Security Configuration
   security:
@@ -57,9 +60,35 @@ spring:
       properties:
         spring.json.trusted.packages: "com.robolearn.api.dto.request"
 
+  # Mail Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:YOUR_EMAIL}
+    password: ${MAIL_PASSWORD:YOUR_APP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  # Caching Configuration (Auto-detects Redis, falls back to Simple)
+  cache:
+    redis:
+      time-to-live: 3600000 # 1 hour default TTL
+      cache-null-values: false
+
+  # Multipart File Upload
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:YOUR_JWT_SECRET}
+  secret: ${JWT_SECRET:robolearn_secure_high_entropy_key_v1_2026_neural_link}
   expiration: 86400000 # 24 hours in milliseconds
   refreshExpiration: 604800000 # 7 days in milliseconds
 
@@ -67,17 +96,15 @@ jwt:
 server:
   port: ${PORT:8080}
 
-# Multipart File Upload
-spring.servlet.multipart:
-  enabled: true
-  max-file-size: 10MB
-  max-request-size: 10MB
-
 # Cloudinary Configuration
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:YOUR_CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY:YOUR_CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET:YOUR_CLOUDINARY_API_SECRET}
+
+# Google Auth Configuration
+google:
+  client-id: ${GOOGLE_CLIENT_ID:YOUR_GOOGLE_CLIENT_ID}
 
 # Logging Configuration
 logging:

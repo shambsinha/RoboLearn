@@ -6,6 +6,7 @@ import com.robolearn.api.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +26,8 @@ public class StudentCourseController {
 
     @GetMapping("/enrolled")
     public ResponseEntity<List<CourseResponse>> getEnrolledCourses() {
-        return ResponseEntity.ok(courseService.getEnrolledCourses());
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(courseService.getEnrolledCourses(email));
     }
 
     @GetMapping("/{courseId}")
@@ -40,13 +42,15 @@ public class StudentCourseController {
 
     @PostMapping("/{courseId}/enroll")
     public ResponseEntity<Void> enrollInCourse(@PathVariable String courseId) {
-        courseService.enrollInCourse(courseId);
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        courseService.enrollInCourse(email, courseId);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{courseId}/progress")
     public ResponseEntity<java.util.Set<String>> getCourseProgress(@PathVariable String courseId) {
-        return ResponseEntity.ok(courseService.getUserCourseProgress(courseId));
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(courseService.getUserCourseProgress(email, courseId));
     }
 
     @PostMapping("/{courseId}/modules/{moduleId}/items/{itemOrder}/complete")
@@ -55,7 +59,8 @@ public class StudentCourseController {
             @PathVariable String moduleId,
             @PathVariable Integer itemOrder,
             @RequestParam String type) {
-        courseService.markItemComplete(courseId, moduleId, itemOrder, type);
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        courseService.markItemComplete(email, courseId, moduleId, itemOrder, type);
         return ResponseEntity.ok().build();
     }
 }

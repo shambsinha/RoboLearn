@@ -35,8 +35,10 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
-    @Column(name = "onboarding_status")
-    private String onboardingStatus; // e.g., "1st Year", "Final Year", "Professional"
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider")
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

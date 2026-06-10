@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -6,6 +6,7 @@ import {
   Activity, ChevronRight, Database, Cpu, ShieldAlert, Zap
 } from 'lucide-react';
 import { adminApi } from '../../api/adminApi';
+import useAuthStore from '../../store/useAuthStore';
 import toast from 'react-hot-toast';
 
 const fadeUp = (d = 0) => ({
@@ -63,10 +64,15 @@ const QuickActionCard = ({ title, description, icon, to, buttonText }) => (
 );
 
 const AdminDashboard = () => {
+  const { user } = useAuthStore();
+  const username = useMemo(() => {
+    return user?.username || JSON.parse(localStorage.getItem('user'))?.username || "Administrator";
+  }, [user]);
+
   const [data, setData] = useState({
     totalStudents: 0, activeCourses: 0, totalProblems: 0, recentActivity: []
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]   = useState(true);
 
   useEffect(() => { fetchDashboardData(); }, []);
 
@@ -80,33 +86,82 @@ const AdminDashboard = () => {
     } finally { setLoading(false); }
   };
 
+  const containerVariants = {
+    animate: { transition: { staggerChildren: 0.05 } }
+  };
+
+  const charVariants = {
+    initial: { opacity: 0, scale: 0.5, filter: 'blur(8px)' },
+    animate: { 
+      opacity: 1, scale: 1, filter: 'blur(0px)',
+      transition: { type: 'spring', stiffness: 200, damping: 12 }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-12 h-12">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-16 h-16">
             <div className="absolute inset-0 rounded-full border border-white/[0.06]" />
             <div className="absolute inset-0 rounded-full border border-transparent border-t-indigo-500 animate-spin" />
+            <div className="absolute inset-[4px] rounded-full border border-transparent border-t-cyan-400 animate-spin [animation-duration:1.4s] [animation-direction:reverse]" />
+            <ShieldAlert className="absolute inset-0 m-auto text-indigo-500/50" size={24} />
           </div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Synchronizing Registry...</p>
+          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] animate-pulse">Synchronizing Registry...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* Page Header */}
-      <motion.div {...fadeUp(0)} className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-        <div>
-          <h2 className="text-3xl font-extrabold text-white tracking-tight">Mainframe <span className="text-gradient-indigo">Overview</span></h2>
-          <p className="text-sm text-slate-500 mt-1">Real-time engagement telemetry and system orchestration.</p>
+    <div className="space-y-12 max-w-7xl mx-auto py-8">
+      {/* Page Header with Animated Greeting */}
+      <div className="relative">
+        <div className="absolute -left-20 -top-20 w-64 h-64 bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
+        
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 relative z-10">
+          <motion.div 
+            variants={containerVariants}
+            initial="initial"
+            animate="animate"
+            className="space-y-2"
+          >
+            <motion.div initial={{ width: 0 }} animate={{ width: 40 }} className="h-1 bg-indigo-500 rounded-full mb-4" />
+            <div className="flex flex-col">
+              <motion.span initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] mb-2 block">
+                Administrative Protocol Active
+              </motion.span>
+              <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter flex flex-wrap items-center gap-x-4">
+                <span className="text-zinc-700 font-bold uppercase tracking-widest text-xs">Administrative Matrix /</span>
+                <span className="relative inline-flex flex-wrap items-center">
+                  {username.split("").map((char, i) => (
+                    <motion.span key={i} variants={charVariants} className="text-gradient-indigo drop-shadow-[0_0_20px_rgba(129,140,248,0.4)]">
+                      {char}
+                    </motion.span>
+                  ))}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0] }}
+                    transition={{ duration: 1.2, repeat: Infinity }}
+                    className="w-1 md:w-2 h-8 md:h-12 bg-indigo-500 ml-2 shadow-glow-indigo"
+                  />
+                </span>
+              </h1>
+            </div>
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-sm text-slate-500 max-w-md">
+              Real-time engagement telemetry and system orchestration operational.
+            </motion.p>
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1, type: 'spring' }} className="flex items-center gap-4 p-4 rounded-2xl glass-card border-white/[0.05]">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/[0.06] text-[9px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20 text-emerald-400 shadow-glow-emerald">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+              Live Connection
+            </div>
+          </motion.div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/[0.06] text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20 text-emerald-400">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          Live Connection Established
-        </div>
-      </motion.div>
+      </div>
 
       {/* Stats Grid */}
       <motion.div {...fadeUp(0.1)} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

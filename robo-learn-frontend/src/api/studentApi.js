@@ -10,6 +10,10 @@ export const studentApi = {
     const response = await apiClient.get('/student/ai/paths');
     return response.data;
   },
+  aiChat: async (message) => {
+    const response = await apiClient.post('/student/ai/chat', { message });
+    return response.data;
+  },
 
   // Courses
   getAvailableCourses: async () => {
@@ -84,6 +88,18 @@ export const studentApi = {
   },
   deleteProfileImage: async () => {
     const response = await apiClient.delete('/users/profile/image');
+    return response.data;
+  },
+  changePassword: async (data) => {
+    const response = await apiClient.post('/users/profile/change-password', data);
+    return response.data;
+  },
+  requestSetPasswordOtp: async () => {
+    const response = await apiClient.post('/users/profile/request-set-password-otp');
+    return response.data;
+  },
+  setPassword: async (data) => {
+    const response = await apiClient.post('/users/profile/set-password', data);
     return response.data;
   },
 };

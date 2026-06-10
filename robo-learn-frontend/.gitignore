@@ -30,6 +30,7 @@ dist-ssr
 
 # Vite
 .vite
+vite.config.js.timestamp-*.mjs
 
 # Generated files
 coverage

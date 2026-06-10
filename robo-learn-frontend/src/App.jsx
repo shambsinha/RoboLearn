@@ -23,6 +23,7 @@ const LandingPage      = lazy(() => import('./pages/public/LandingPage'));
 const AdminDashboard   = lazy(() => import('./pages/admin/AdminDashboard'));
 const CourseManager    = lazy(() => import('./pages/admin/CourseManager'));
 const ProblemBank      = lazy(() => import('./pages/admin/ProblemBank'));
+const ProblemBuilder   = lazy(() => import('./pages/admin/ProblemBuilder'));
 const StudentList      = lazy(() => import('./pages/admin/StudentList'));
 const CourseDetail     = lazy(() => import('./pages/admin/CourseDetail'));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
@@ -79,13 +80,11 @@ function App() {
 
       {/* Ambient lighting now handled by Canvas neural environment */}
 
-      {/* ── Application shell (z-10 above canvas) ── */}
-      <div className="relative z-10">
-        <Router>
-          <Toaster position="top-right" toastOptions={TOAST_OPTS} />
-
-          <Suspense fallback={<RouteLoading />}>
-            <Routes>
+      // ── Application shell (z-10 above canvas) ──
+            <div className="relative z-10">
+              <Router>
+                <Suspense fallback={<RouteLoading />}>
+                  <Routes>
               {/* Public */}
               <Route path="/"         element={<LandingPage />} />
               <Route path="/login"    element={<LoginPage />} />
@@ -114,6 +113,7 @@ function App() {
                   <Route path="courses"           element={<CourseManager />} />
                   <Route path="courses/:courseId"  element={<CourseDetail />} />
                   <Route path="problems"          element={<ProblemBank />} />
+                  <Route path="problems/builder"  element={<ProblemBuilder />} />
                   <Route path="users"             element={<StudentList />} />
                   <Route path="settings"          element={<PlaceholderPage title="System Settings" desc="Configure global platform parameters." />} />
                 </Route>
