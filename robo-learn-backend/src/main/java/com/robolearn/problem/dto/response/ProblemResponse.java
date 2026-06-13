@@ -1,0 +1,25 @@
+package com.robolearn.problem.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProblemResponse {
+    private Long id;
+    private String title;
+    private String description;
+    private String difficulty;
+    private String courseId;
+    private List<String> tags;
+    private String boilerplateCode;
+    private String driverCode;
+    private Integer totalTestCases;
+    private List<TestCaseResponse> testCases;
+}

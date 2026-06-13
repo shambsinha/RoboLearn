@@ -14,13 +14,31 @@ spring:
   # JPA/Hibernate Configuration
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+      jakarta:
+        persistence:
+          jdbc:
+            url: ${DATABASE_URL:YOUR_DATABASE_URL}
+            user: ${DATABASE_USERNAME:YOUR_DATABASE_USERNAME}
+            password: ${DATABASE_PASSWORD:YOUR_DATABASE_PASSWORD}
 
-  # Unified Data Configuration (MongoDB + Redis)
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # MongoDB Configuration (SB 4.0 uses spring.mongodb namespace)
+  mongodb:
+    uri: ${MONGODB_URI:YOUR_MONGODB_URI}
+
+  # Unified Data Configuration (Redis remains under spring.data)
   data:
-    mongodb:
-      uri: ${MONGODB_URI:YOUR_MONGODB_URI}
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
@@ -58,7 +76,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.robolearn.api.dto.request"
+        spring.json.trusted.packages: "com.robolearn"
 
   # Mail Configuration
   mail:
@@ -111,9 +129,15 @@ logging:
   level:
     root: INFO
     com.robolearn: DEBUG
+    org.flywaydb: DEBUG
     org.springframework.security: DEBUG
     org.apache.kafka: ERROR
     org.springframework.kafka: ERROR
     org.hibernate.orm.deprecation: ERROR
   pattern:
     console: "[%d{yyyy-MM-dd HH:mm:ss}] [%thread] %-5level %logger{36} - %msg%n"
+
+# Application Custom Properties
+app:
+  seeder:
+    enabled: ${SEEDER_ENABLED:false}

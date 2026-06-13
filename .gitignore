@@ -23,7 +23,7 @@ robo-learn-frontend/coverage/
 
 # Logs and environment
 *.log
-robo-learn-frontend/.env
+*.env
 .env.local
 .env.*.local
 
