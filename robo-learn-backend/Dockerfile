@@ -1,8 +1,10 @@
-# Build stage using a full Gradle image
-FROM gradle:8.5-jdk17 AS build
+# Build stage using standard JDK and Gradle Wrapper
+FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
 COPY . .
-RUN gradle bootJar --no-daemon
+# Ensure gradlew has execution permissions before running
+RUN chmod +x gradlew
+RUN ./gradlew bootJar --no-daemon
 
 # Run stage - Using JDK instead of JRE to have 'javac' available for coding problems
 FROM eclipse-temurin:17-jdk-jammy
