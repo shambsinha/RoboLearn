@@ -14,18 +14,15 @@ if (API_BASE_URL) {
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Axios Interceptor to attach JWT token
+// Axios Interceptor (No longer attaching Authorization header since we use HttpOnly cookies)
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => {

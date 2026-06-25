@@ -4,8 +4,7 @@ import { studentApi } from '../api/studentApi';
 
 const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('user')) || null,
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: !!localStorage.getItem('user'),
 
   // Performance Optimization: Preload dashboard data
   preloadDashboard: async (role) => {
@@ -21,16 +20,14 @@ const useAuthStore = create((set) => ({
 
   login: async (identifier, password) => {
     try {
-      const response = await apiClient.post('/auth/login', { identifier, password });
-      const { token, id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider } = response.data;
+      const response = await apiClient.post('/auth/login', { identifierType: 'EMAIL', identifier, password });
+      const { id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider } = response.data;
 
       const userData = { id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider };
 
-      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       
       set({
-        token,
         user: userData,
         isAuthenticated: true,
       });
@@ -45,15 +42,13 @@ const useAuthStore = create((set) => ({
   loginWithGoogle: async (idToken) => {
     try {
       const response = await apiClient.post('/auth/google', { idToken });
-      const { token, id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider } = response.data;
+      const { id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider } = response.data;
 
       const userData = { id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider };
 
-      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));
       
       set({
-        token,
         user: userData,
         isAuthenticated: true,
       });
@@ -65,18 +60,16 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  register: async (userData) => {
+  register: async (userDataInput) => {
     try {
-      const response = await apiClient.post('/auth/register', userData);
-      const { token, id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider } = response.data;
+      const response = await apiClient.post('/auth/register', userDataInput);
+      const { id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider } = response.data;
 
       const user = { id, username, profilePictureUrl, role, xp, solvedProblemIds, authProvider };
 
-      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
       
       set({
-        token,
         user,
         isAuthenticated: true,
       });
@@ -88,12 +81,11 @@ const useAuthStore = create((set) => ({
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
+  logout: async () => {
+    // Optionally call a backend /api/auth/logout endpoint to clear cookies
     localStorage.removeItem('user');
     set({
       user: null,
-      token: null,
       isAuthenticated: false,
     });
   },
