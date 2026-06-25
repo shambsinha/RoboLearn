@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginRequest {
 
+    private String identifierType;
+
     @NotBlank(message = "Username or Email is required")
     private String identifier;
 

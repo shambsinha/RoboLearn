@@ -29,7 +29,7 @@ dependency-reduced-pom.xml
 build/
 
 # Environment
-.env
+config/application.properties
 .env.local
 
 # Logs

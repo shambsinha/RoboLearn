@@ -127,15 +127,16 @@ google:
 # Logging Configuration
 logging:
   level:
-    root: INFO
-    com.robolearn: DEBUG
-    org.flywaydb: DEBUG
-    org.springframework.security: DEBUG
+    root: WARN
+    com.robolearn: INFO
+    org.springframework: WARN
+    org.springframework.boot: INFO
+    org.flywaydb: WARN
     org.apache.kafka: ERROR
     org.springframework.kafka: ERROR
-    org.hibernate.orm.deprecation: ERROR
+    org.hibernate: WARN
   pattern:
-    console: "[%d{yyyy-MM-dd HH:mm:ss}] [%thread] %-5level %logger{36} - %msg%n"
+    console: "[%d{yyyy-MM-dd HH:mm:ss}] %-5level %logger{36} - %msg%n"
 
 # Application Custom Properties
 app:

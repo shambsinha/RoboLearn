@@ -27,6 +27,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
+
+import com.robolearn.auth.service.RedisSessionService;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,6 +49,7 @@ public class AuthServiceImpl implements com.robolearn.auth.service.AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
+    private final RedisSessionService redisSessionService;
 
     @Value("${google.client-id:}")
     private String googleClientId;
@@ -91,8 +97,11 @@ public class AuthServiceImpl implements com.robolearn.auth.service.AuthService {
         var userDetails = new CustomUserDetails(user);
         String jwtToken = jwtService.generateToken(userDetails);
 
+        String sessionToken = generateRedisSession(user.getId().toString());
+
         return AuthResponse.builder()
                 .token(jwtToken)
+                .sessionToken(sessionToken)
                 .id(user.getId())
                 .username(user.getUsername())
                 .profilePictureUrl(user.getProfilePictureUrl())
@@ -101,6 +110,22 @@ public class AuthServiceImpl implements com.robolearn.auth.service.AuthService {
                 .xp(user.getXp())
                 .solvedProblemIds(user.getSolvedProblemIds())
                 .build();
+    }
+
+    private String generateRedisSession(String userId) {
+        String ipAddress = "UNKNOWN";
+        String device = "UNKNOWN";
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
+                ipAddress = request.getRemoteAddr();
+                device = request.getHeader("User-Agent");
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract request attributes for session: {}", e.getMessage());
+        }
+        return redisSessionService.createSession(userId, ipAddress, device);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -123,10 +148,13 @@ public class AuthServiceImpl implements com.robolearn.auth.service.AuthService {
 
         var userDetails = new CustomUserDetails(user);
         String jwtToken = jwtService.generateToken(userDetails);
+        
+        String sessionToken = generateRedisSession(user.getId().toString());
 
         log.info("[Auth] Session generated for user: {}", user.getUsername());
         return AuthResponse.builder()
                 .token(jwtToken)
+                .sessionToken(sessionToken)
                 .id(user.getId())
                 .username(user.getUsername())
                 .profilePictureUrl(user.getProfilePictureUrl())
@@ -213,8 +241,11 @@ public class AuthServiceImpl implements com.robolearn.auth.service.AuthService {
             var userDetails = new CustomUserDetails(user);
             String jwtToken = jwtService.generateToken(userDetails);
 
+            String sessionToken = generateRedisSession(user.getId().toString());
+
             return AuthResponse.builder()
                     .token(jwtToken)
+                    .sessionToken(sessionToken)
                     .id(user.getId())
                     .username(user.getUsername())
                     .profilePictureUrl(user.getProfilePictureUrl())

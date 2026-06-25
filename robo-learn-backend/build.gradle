@@ -29,7 +29,6 @@ ext {
 dependencyManagement {
     imports {
         mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
-        mavenBom "me.paulschwarz:spring-dotenv-bom:5.1.0"
     }
 }
 
@@ -77,9 +76,6 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-
-    // Dotenv support for local environment variables
-    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
 
     // Cloudinary SDK
     implementation 'com.cloudinary:cloudinary-http44:1.36.0'

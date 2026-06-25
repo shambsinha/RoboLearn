@@ -27,11 +27,12 @@ This document lists all available API endpoints, their methods, request bodies, 
 *   **Body:**
     ```json
     {
+      "identifierType": "EMAIL", // or "USERNAME"
       "identifier": "john@example.com", // username or email
       "password": "password123"
     }
     ```
-*   **Response:** `AuthResponse` object containing JWT token.
+*   **Response:** `AuthResponse` object containing JWT token and Redis `sessionToken`.
 
 ### Google Login
 *   **URL:** `/api/auth/google`

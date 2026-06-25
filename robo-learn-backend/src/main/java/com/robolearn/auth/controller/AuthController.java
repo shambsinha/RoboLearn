@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,17 +26,47 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+        AuthResponse response = authService.register(request);
+        return buildSecureResponse(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+        AuthResponse response = authService.login(request);
+        return buildSecureResponse(response);
     }
 
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
-        return ResponseEntity.ok(authService.loginWithGoogle(request));
+        AuthResponse response = authService.loginWithGoogle(request);
+        return buildSecureResponse(response);
+    }
+
+    private ResponseEntity<AuthResponse> buildSecureResponse(AuthResponse response) {
+        ResponseCookie jwtCookie = ResponseCookie.from("access_token", response.getToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(24 * 60 * 60) // 1 Day
+                .sameSite("Strict")
+                .build();
+
+        ResponseCookie sessionCookie = ResponseCookie.from("session_token", response.getSessionToken() != null ? response.getSessionToken() : "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(30L * 24 * 60 * 60) // 30 Days
+                .sameSite("Strict")
+                .build();
+
+        // Clear tokens from JSON body for full security
+        response.setToken(null);
+        response.setSessionToken(null);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+                .body(response);
     }
 
     @PostMapping("/send-otp")
