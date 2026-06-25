@@ -4,8 +4,9 @@ WORKDIR /app
 COPY . .
 # Ensure gradlew has execution permissions before running
 RUN chmod +x gradlew
-# Restrict Gradle JVM memory to 256MB to prevent Docker OOM on Render Free Tier
-RUN ./gradlew bootJar --no-daemon -Dorg.gradle.jvmargs="-Xmx256m"
+# Restrict Gradle JVM memory using ENV instead of command arguments to avoid task parsing errors
+ENV GRADLE_OPTS="-Dorg.gradle.jvmargs=-Xmx256m"
+RUN ./gradlew bootJar --no-daemon
 
 # Run stage - Using JDK instead of JRE to have 'javac' available for coding problems
 FROM eclipse-temurin:17-jdk-jammy
