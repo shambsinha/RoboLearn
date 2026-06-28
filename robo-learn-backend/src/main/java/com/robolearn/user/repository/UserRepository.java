@@ -20,4 +20,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     long countByXpGreaterThan(Integer xp);
+    java.util.List<User> findTop20ByOrderByXpDesc();
 }
