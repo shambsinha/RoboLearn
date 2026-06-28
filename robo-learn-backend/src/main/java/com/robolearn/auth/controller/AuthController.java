@@ -48,7 +48,7 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(24 * 60 * 60) // 1 Day
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         ResponseCookie sessionCookie = ResponseCookie.from("session_token", response.getSessionToken() != null ? response.getSessionToken() : "")
@@ -56,7 +56,7 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(30L * 24 * 60 * 60) // 30 Days
-                .sameSite("Strict")
+                .sameSite("None")
                 .build();
 
         // Clear tokens from JSON body for full security

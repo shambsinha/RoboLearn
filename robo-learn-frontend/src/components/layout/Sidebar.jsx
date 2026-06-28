@@ -20,10 +20,18 @@ const Sidebar = ({ role }) => {
   const studentLinks = [
     { name: 'Courses',      path: '/student/courses',      icon: BookOpen },
     { name: 'Problems',     path: '/student/problems',     icon: Code2 },
+    { name: 'Leaderboard',  path: '/student/leaderboard',  icon: Trophy },
     { name: 'Contests',     path: '/student/contests',     icon: Trophy },
     { name: 'Achievements', path: '/student/achievements', icon: Medal },
     { name: 'AI Tutor',     path: '/student/ai-tutor',     icon: Sparkles },
     { name: 'Profile',      path: '/student/profile',      icon: User },
+  ];
+
+  const instructorLinks = [
+    { name: 'Dashboard', path: '/instructor/overview', icon: LayoutDashboard },
+    { name: 'My Courses', path: '/instructor/courses', icon: FolderEdit },
+    { name: 'Problems',  path: '/instructor/problems', icon: Database },
+    { name: 'Profile',   path: '/instructor/profile',  icon: User },
   ];
 
   const adminLinks = [
@@ -34,7 +42,9 @@ const Sidebar = ({ role }) => {
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
-  const links = role === 'ADMIN' ? adminLinks : studentLinks;
+  let links = studentLinks;
+  if (role === 'ADMIN') links = adminLinks;
+  else if (role === 'INSTRUCTOR') links = instructorLinks;
 
   return (
     <aside className="w-56 fixed top-14 bottom-0 left-0 z-40 glass-strong border-r border-white/[0.05] flex flex-col hidden lg:flex">

@@ -8,7 +8,9 @@ import {
   Play,
   ChevronLeft,
   CheckCircle,
-  Award
+  Award,
+  Layers,
+  Activity
 } from 'lucide-react';
 import { studentApi } from '../../api/studentApi';
 

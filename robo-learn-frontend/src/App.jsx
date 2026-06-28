@@ -26,14 +26,17 @@ const ProblemBank      = lazy(() => import('./pages/admin/ProblemBank'));
 const ProblemBuilder   = lazy(() => import('./pages/admin/ProblemBuilder'));
 const StudentList      = lazy(() => import('./pages/admin/StudentList'));
 const CourseDetail     = lazy(() => import('./pages/admin/CourseDetail'));
+const InstructorDashboard = lazy(() => import('./pages/instructor/InstructorDashboard'));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const AiTutor          = lazy(() => import('./pages/student/AiTutor'));
+const ContestsPage     = lazy(() => import('./pages/student/ContestsPage'));
 const CourseCatalog    = lazy(() => import('./pages/student/CourseCatalog'));
 const ArenaCatalog     = lazy(() => import('./pages/student/ArenaCatalog'));
 const CodingWorkspace  = lazy(() => import('./pages/student/CodingWorkspace'));
 const CourseViewer     = lazy(() => import('./pages/student/CourseViewer'));
 const UserProfile      = lazy(() => import('./pages/student/UserProfile'));
 const Achievements     = lazy(() => import('./pages/student/Achievements'));
+const Leaderboard      = lazy(() => import('./pages/student/Leaderboard'));
 
 // ── Route-level loading state ────────────────────────────────────────────────
 const RouteLoading = () => (
@@ -80,7 +83,7 @@ function App() {
 
       {/* Ambient lighting now handled by Canvas neural environment */}
 
-      // ── Application shell (z-10 above canvas) ──
+      {/* ── Application shell (z-10 above canvas) ── */}
             <div className="relative z-10">
               <Router>
                 <Suspense fallback={<RouteLoading />}>
@@ -98,8 +101,9 @@ function App() {
                   <Route path="courses/:courseId"   element={<CourseViewer />} />
                   <Route path="problems"           element={<ArenaCatalog />} />
                   <Route path="problems/:problemId" element={<CodingWorkspace />} />
-                  <Route path="contests"           element={<PlaceholderPage title="Contests"     desc="Weekly coding challenges and tournaments." />} />
+                  <Route path="contests"           element={<ContestsPage />} />
                   <Route path="achievements"       element={<Achievements />} />
+                  <Route path="leaderboard"        element={<Leaderboard />} />
                   <Route path="profile"            element={<UserProfile />} />
                   <Route path="ai-tutor"           element={<AiTutor />} />
                 </Route>
@@ -116,6 +120,19 @@ function App() {
                   <Route path="problems/builder"  element={<ProblemBuilder />} />
                   <Route path="users"             element={<StudentList />} />
                   <Route path="settings"          element={<PlaceholderPage title="System Settings" desc="Configure global platform parameters." />} />
+                </Route>
+              </Route>
+
+              {/* Instructor */}
+              <Route element={<ProtectedRoute allowedRoles={['INSTRUCTOR']} />}>
+                <Route path="/instructor" element={<AdminLayout />}>
+                  <Route index                    element={<Navigate to="overview" replace />} />
+                  <Route path="overview"          element={<InstructorDashboard />} />
+                  <Route path="courses"           element={<CourseManager />} />
+                  <Route path="courses/:courseId"  element={<CourseDetail />} />
+                  <Route path="problems"          element={<ProblemBank />} />
+                  <Route path="problems/builder"  element={<ProblemBuilder />} />
+                  <Route path="profile"           element={<UserProfile />} />
                 </Route>
               </Route>
 

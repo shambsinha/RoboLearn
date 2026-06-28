@@ -15,33 +15,39 @@ export const studentApi = {
     return response.data;
   },
 
+  // Leaderboard
+  getLeaderboard: async () => {
+    const response = await apiClient.get('/leaderboard');
+    return response.data;
+  },
+
   // Courses
   getAvailableCourses: async () => {
-    const response = await apiClient.get('/student/courses');
+    const response = await apiClient.get('/courses');
     return response.data;
   },
   getEnrolledCourses: async () => {
-    const response = await apiClient.get('/student/courses/enrolled');
+    const response = await apiClient.get('/courses/enrolled');
     return response.data;
   },
   enrollInCourse: async (courseId) => {
-    const response = await apiClient.post(`/student/courses/${courseId}/enroll`);
+    const response = await apiClient.post(`/courses/${courseId}/enroll`);
     return response.data;
   },
   getCourseDetails: async (courseId) => {
-    const response = await apiClient.get(`/student/courses/${courseId}`);
+    const response = await apiClient.get(`/courses/${courseId}`);
     return response.data;
   },
   getCourseProblems: async (courseId) => {
-    const response = await apiClient.get(`/student/courses/${courseId}/problems`);
+    const response = await apiClient.get(`/courses/${courseId}/problems`);
     return response.data;
   },
   getCourseProgress: async (courseId) => {
-    const response = await apiClient.get(`/student/courses/${courseId}/progress`);
+    const response = await apiClient.get(`/courses/${courseId}/progress`);
     return response.data;
   },
   markItemComplete: async (courseId, moduleId, itemOrder, type) => {
-    const response = await apiClient.post(`/student/courses/${courseId}/modules/${moduleId}/items/${itemOrder}/complete?type=${type}`);
+    const response = await apiClient.post(`/courses/${courseId}/modules/${moduleId}/items/${itemOrder}/complete?type=${type}`);
     return response.data;
   },
 

@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/public/health/**", "/error", "/ws-arena/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/public/health/**", "/api/leaderboard", "/error", "/ws-arena/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

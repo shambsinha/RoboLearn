@@ -51,6 +51,15 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    private void verifyCourseOwnership(Course course) {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = userDetails.getUser();
+        boolean isAdmin = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
+        if (!isAdmin && (course.getInstructorId() == null || !course.getInstructorId().equals(currentUser.getId()))) {
+            throw new RuntimeException("You do not have permission to modify this course");
+        }
+    }
+
     @CacheEvict(value = "courses", allEntries = true)
     public CourseResponse createCourse(CourseRequest request) {
         dashboardService.evictAdminMetrics();
@@ -85,6 +94,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
         dashboardService.evictAdminMetrics();
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+        verifyCourseOwnership(course);
 
         courseRepository.findByTitle(request.getTitle()).ifPresent(existing -> {
             if (!existing.getCourseId().equals(courseId)) {
@@ -108,9 +118,9 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     })
     public void deleteCourse(String courseId) {
         dashboardService.evictAdminMetrics();
-        if (!courseRepository.existsById(courseId)) {
-            throw new ResourceNotFoundException("Course not found");
-        }
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+        verifyCourseOwnership(course);
         courseRepository.deleteById(courseId);
     }
 
@@ -118,6 +128,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     public ModuleResponse addModule(String courseId, ModuleRequest request) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+        verifyCourseOwnership(course);
 
         if (course.getModules() == null) {
             course.setModules(new java.util.ArrayList<>());
@@ -141,8 +152,10 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
         List<Course> courses = courseRepository.findAll();
         for (Course course : courses) {
             if (course.getModules() != null) {
-                boolean removed = course.getModules().removeIf(m -> m.getModuleId().equals(moduleId));
-                if (removed) {
+                boolean hasModule = course.getModules().stream().anyMatch(m -> m.getModuleId().equals(moduleId));
+                if (hasModule) {
+                    verifyCourseOwnership(course);
+                    course.getModules().removeIf(m -> m.getModuleId().equals(moduleId));
                     courseRepository.save(course);
                     return;
                 }
@@ -168,6 +181,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     public void addProblemToCourse(String courseId, Long problemId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+        verifyCourseOwnership(course);
         
         if (!codingProblemRepository.existsById(problemId)) {
             throw new ResourceNotFoundException("Problem not found");
@@ -187,6 +201,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     public void removeProblemFromCourse(String courseId, Long problemId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+        verifyCourseOwnership(course);
         
         if (course.getProblemIds() != null) {
             course.getProblemIds().remove(problemId);
@@ -266,6 +281,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .imageUrl(course.getImageUrl())
                 .tags(course.getTags() != null ? course.getTags() : new java.util.ArrayList<>())
                 .instructorName(instructorName)
+                .instructorId(course.getInstructorId())
                 .createdAt(course.getCreatedAt())
                 .build();
     }
@@ -325,6 +341,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
             if (course.getModules() == null) continue;
             for (Module module : course.getModules()) {
                 if (module.getModuleId().equals(moduleId)) {
+                    verifyCourseOwnership(course);
                     java.util.Set<String> oldImageUrls = extractImageUrls(module.getItems());
 
                     List<Module.CurriculumItem> items = requests.stream()
@@ -391,6 +408,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .imageUrl(course.getImageUrl())
                 .tags(course.getTags() != null ? course.getTags() : new java.util.ArrayList<>())
                 .instructorName(instructorName)
+                .instructorId(course.getInstructorId())
                 .createdAt(course.getCreatedAt())
                 .modules(modules)
                 .build();
@@ -414,6 +432,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .imageUrl(course.getImageUrl())
                 .tags(course.getTags() != null ? course.getTags() : new java.util.ArrayList<>())
                 .instructorName(instructorName)
+                .instructorId(course.getInstructorId())
                 .createdAt(course.getCreatedAt())
                 .build();
     }

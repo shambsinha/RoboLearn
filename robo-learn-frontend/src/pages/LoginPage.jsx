@@ -70,7 +70,8 @@ const LoginPage = () => {
     // Warm up caches while navigating
     preloadDashboard(data.role);
     if (data.role === 'ADMIN') navigate('/admin/overview');
-    else                        navigate('/student');
+    else if (data.role === 'INSTRUCTOR') navigate('/instructor/overview');
+    else navigate('/student');
   };
 
   const handleSubmit = async (e) => {
