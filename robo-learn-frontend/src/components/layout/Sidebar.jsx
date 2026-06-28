@@ -20,6 +20,7 @@ const Sidebar = ({ role }) => {
   const studentLinks = [
     { name: 'Courses',      path: '/student/courses',      icon: BookOpen },
     { name: 'Problems',     path: '/student/problems',     icon: Code2 },
+    { name: 'Leaderboard',  path: '/student/leaderboard',  icon: Trophy },
     { name: 'Contests',     path: '/student/contests',     icon: Trophy },
     { name: 'Achievements', path: '/student/achievements', icon: Medal },
     { name: 'AI Tutor',     path: '/student/ai-tutor',     icon: Sparkles },

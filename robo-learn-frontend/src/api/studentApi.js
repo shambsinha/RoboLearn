@@ -15,6 +15,12 @@ export const studentApi = {
     return response.data;
   },
 
+  // Leaderboard
+  getLeaderboard: async () => {
+    const response = await apiClient.get('/leaderboard');
+    return response.data;
+  },
+
   // Courses
   getAvailableCourses: async () => {
     const response = await apiClient.get('/courses');
