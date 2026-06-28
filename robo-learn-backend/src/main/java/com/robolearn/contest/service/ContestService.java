@@ -40,13 +40,13 @@ public class ContestService {
 
     public ContestResponse getContestById(String contestId, Long userId) {
         Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new RuntimeException("Contest not found"));
+                .orElseThrow(() -> new RuntimeException(com.robolearn.core.exception.ErrorMessages.CONTEST_NOT_FOUND));
         return mapToResponse(contest, userId);
     }
 
     public ContestResponse enroll(String contestId, Long userId) {
         Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new RuntimeException("Contest not found"));
+                .orElseThrow(() -> new RuntimeException(com.robolearn.core.exception.ErrorMessages.CONTEST_NOT_FOUND));
         
         contest.getEnrolledUserIds().add(userId);
         contest = contestRepository.save(contest);

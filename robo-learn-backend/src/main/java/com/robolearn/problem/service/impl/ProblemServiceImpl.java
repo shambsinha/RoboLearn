@@ -46,14 +46,14 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
         // If tied to a course, check course ownership
         if (problem.getCourseId() != null) {
             Course course = courseRepository.findById(problem.getCourseId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
-            if (!isAdmin && (course.getInstructorId() == null || !course.getInstructorId().equals(currentUser.getId()))) {
+                    .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
+            if (!isAdmin && (course.getCreatedBy() == null || !course.getCreatedBy().equals(currentUser.getId()))) {
                 throw new RuntimeException("You do not have permission to modify this problem tied to course: " + course.getTitle());
             }
         } else {
             // Standalone problem ownership
-            if (!isAdmin && (problem.getInstructorId() == null || !problem.getInstructorId().equals(currentUser.getId()))) {
-                throw new RuntimeException("You do not have permission to modify this standalone problem");
+            if (!isAdmin && (problem.getCreatedBy() == null || !problem.getCreatedBy().equals(currentUser.getId()))) {
+                throw new RuntimeException(com.robolearn.core.exception.ErrorMessages.PROBLEM_MODIFICATION_DENIED_STANDALONE);
             }
         }
     }
@@ -66,12 +66,12 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
         String courseId = null;
         if (request.getCourseId() != null) {
             Course course = courseRepository.findById(request.getCourseId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
             
             // Check course ownership for new problems tied to course
             boolean isAdmin = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
-            if (!isAdmin && (course.getInstructorId() == null || !course.getInstructorId().equals(currentUser.getId()))) {
-                throw new RuntimeException("You do not have permission to add a problem to this course");
+            if (!isAdmin && (course.getCreatedBy() == null || !course.getCreatedBy().equals(currentUser.getId()))) {
+                throw new RuntimeException(com.robolearn.core.exception.ErrorMessages.PROBLEM_ADD_DENIED);
             }
             
             courseId = course.getCourseId();
@@ -87,7 +87,7 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
                 .description(request.getDescription())
                 .difficulty(request.getDifficulty())
                 .courseId(courseId)
-                .instructorId(currentUser.getId())
+                .createdBy(currentUser.getId())
                 .tags(request.getTags() != null ? request.getTags() : new java.util.ArrayList<>())
                 .boilerplateCode(request.getBoilerplateCode())
                 .driverCode(request.getDriverCode())
@@ -99,7 +99,7 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
     @CacheEvict(value = "problemDetails", key = "#problemId")
     public TestCaseResponse addTestCase(Long problemId, TestCaseRequest request) {
         CodingProblem problem = problemRepository.findById(problemId)
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.PROBLEM_NOT_FOUND));
         verifyProblemOwnership(problem);
 
         TestCase testCase = TestCase.builder()
@@ -142,7 +142,7 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
     @Cacheable(value = "problemDetails", key = "#id")
     public ProblemResponse getProblemById(Long id) {
         CodingProblem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.PROBLEM_NOT_FOUND));
         return mapToProblemResponse(problem);
     }
 
@@ -152,12 +152,12 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
     })
     public ProblemResponse updateProblem(Long id, ProblemRequest request) {
         CodingProblem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.PROBLEM_NOT_FOUND));
         verifyProblemOwnership(problem);
 
         if (request.getCourseId() != null) {
             Course course = courseRepository.findById(request.getCourseId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
             problem.setCourseId(course.getCourseId());
         } else {
             problem.setCourseId(null);
@@ -185,7 +185,7 @@ public class ProblemServiceImpl implements com.robolearn.problem.service.Problem
     })
     public void deleteProblem(Long id) {
         CodingProblem problem = problemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Problem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.PROBLEM_NOT_FOUND));
         verifyProblemOwnership(problem);
         
         // Delete associated test cases

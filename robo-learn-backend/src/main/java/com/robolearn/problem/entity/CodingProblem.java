@@ -28,7 +28,7 @@ public class CodingProblem {
 
     private String courseId;
 
-    private Long instructorId; // Tracks who created the problem
+    private Long createdBy; // Tracks who created the problem
 
 
     @Builder.Default

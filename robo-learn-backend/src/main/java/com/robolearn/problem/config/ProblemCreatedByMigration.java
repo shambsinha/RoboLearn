@@ -16,7 +16,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class ProblemInstructorMigration implements CommandLineRunner {
+public class ProblemCreatedByMigration implements CommandLineRunner {
 
     private final CodingProblemRepository problemRepository;
 
@@ -27,17 +27,17 @@ public class ProblemInstructorMigration implements CommandLineRunner {
         int updatedCount = 0;
 
         for (CodingProblem problem : problems) {
-            if (problem.getInstructorId() == null) {
-                problem.setInstructorId(1L);
+            if (problem.getCreatedBy() == null) {
+                problem.setCreatedBy(1L);
                 problemRepository.save(problem);
                 updatedCount++;
             }
         }
 
         if (updatedCount > 0) {
-            log.info("Migration Complete: Updated {} coding problems with instructorId = 1 (Admin).", updatedCount);
+            log.info("Migration Complete: Updated {} coding problems with createdBy = 1 (Admin).", updatedCount);
         } else {
-            log.info("Migration Skipped: All coding problems already have an instructorId.");
+            log.info("Migration Skipped: All coding problems already have an createdBy.");
         }
     }
 }

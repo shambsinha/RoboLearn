@@ -238,7 +238,7 @@ const StudentDashboard = () => {
                           </div>
                         )}
                         <h4 className="text-sm font-bold text-white mb-1 truncate group-hover:text-cyan-300 transition-colors">{course.title}</h4>
-                        <p className="text-[11px] text-slate-600">{course.instructorName || 'Academy Instructor'}</p>
+                        <p className="text-[11px] text-slate-600">{course.creatorName || 'Academy Instructor'}</p>
                       </motion.div>
                     </Link>
                   ))}

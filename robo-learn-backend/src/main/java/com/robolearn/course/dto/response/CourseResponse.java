@@ -21,8 +21,8 @@ public class CourseResponse {
     private String category;
     private String imageUrl;
     private java.util.List<String> tags;
-    private String instructorName;
-    private Long instructorId;
+    private String creatorName;
+    private Long createdBy;
     private List<ModuleResponse> modules;
     private LocalDateTime createdAt;
 }

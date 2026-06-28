@@ -116,7 +116,7 @@ const CourseDetail = () => {
                  </div>
                  <div>
                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Lead Instructor</p>
-                    <p className="text-sm font-bold text-white uppercase tracking-tight">{course.instructorName || 'Academy Instructor'}</p>
+                    <p className="text-sm font-bold text-white uppercase tracking-tight">{course.creatorName || 'Academy Instructor'}</p>
                  </div>
               </div>
               <p className="text-slate-400 text-lg leading-relaxed font-medium">

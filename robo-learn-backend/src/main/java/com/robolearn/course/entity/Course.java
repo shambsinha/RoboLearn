@@ -35,7 +35,7 @@ public class Course {
 
     private String imageUrl;
 
-    private Long instructorId;
+    private Long createdBy;
 
     @Builder.Default
     private List<Module> modules = new ArrayList<>();

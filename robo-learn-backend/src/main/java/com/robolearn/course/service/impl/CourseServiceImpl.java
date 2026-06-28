@@ -55,8 +55,8 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User currentUser = userDetails.getUser();
         boolean isAdmin = currentUser.getRoles().stream().anyMatch(r -> r.getName().equals("ADMIN"));
-        if (!isAdmin && (course.getInstructorId() == null || !course.getInstructorId().equals(currentUser.getId()))) {
-            throw new RuntimeException("You do not have permission to modify this course");
+        if (!isAdmin && (course.getCreatedBy() == null || !course.getCreatedBy().equals(currentUser.getId()))) {
+            throw new RuntimeException(com.robolearn.core.exception.ErrorMessages.COURSE_MODIFICATION_DENIED);
         }
     }
 
@@ -67,7 +67,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
         User instructor = userDetails.getUser();
 
         courseRepository.findByTitle(request.getTitle()).ifPresent(existing -> {
-            throw new RuntimeException("A course with this title already exists");
+            throw new RuntimeException(com.robolearn.core.exception.ErrorMessages.COURSE_ALREADY_EXISTS);
         });
 
         Course course = Course.builder()
@@ -78,7 +78,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .category(request.getCategory())
                 .imageUrl(request.getImageUrl())
                 .tags(request.getTags() != null ? request.getTags() : new java.util.ArrayList<>())
-                .instructorId(instructor.getId())
+                .createdBy(instructor.getId())
                 .modules(new java.util.ArrayList<>())
                 .problemIds(new java.util.ArrayList<>())
                 .build();
@@ -93,12 +93,12 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     public CourseResponse updateCourse(String courseId, CourseRequest request) {
         dashboardService.evictAdminMetrics();
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
         verifyCourseOwnership(course);
 
         courseRepository.findByTitle(request.getTitle()).ifPresent(existing -> {
             if (!existing.getCourseId().equals(courseId)) {
-                throw new RuntimeException("A course with this title already exists");
+                throw new RuntimeException(com.robolearn.core.exception.ErrorMessages.COURSE_ALREADY_EXISTS);
             }
         });
 
@@ -119,7 +119,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     public void deleteCourse(String courseId) {
         dashboardService.evictAdminMetrics();
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
         verifyCourseOwnership(course);
         courseRepository.deleteById(courseId);
     }
@@ -127,7 +127,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     @CacheEvict(value = "courseDetails", key = "#courseId")
     public ModuleResponse addModule(String courseId, ModuleRequest request) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
         verifyCourseOwnership(course);
 
         if (course.getModules() == null) {
@@ -161,7 +161,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 }
             }
         }
-        throw new ResourceNotFoundException("Module not found");
+        throw new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.MODULE_NOT_FOUND);
     }
 
     @Cacheable(value = "courses")
@@ -180,7 +180,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     @CacheEvict(value = "courseDetails", key = "#courseId")
     public void addProblemToCourse(String courseId, Long problemId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
         verifyCourseOwnership(course);
         
         if (!codingProblemRepository.existsById(problemId)) {
@@ -200,7 +200,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     @CacheEvict(value = "courseDetails", key = "#courseId")
     public void removeProblemFromCourse(String courseId, Long problemId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
         verifyCourseOwnership(course);
         
         if (course.getProblemIds() != null) {
@@ -211,7 +211,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
 
     public List<CodingProblem> getCourseProblems(String courseId) {
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.COURSE_NOT_FOUND));
         
         if (course.getProblemIds() == null || course.getProblemIds().isEmpty()) {
             return new java.util.ArrayList<>();
@@ -226,7 +226,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     })
     public void enrollInCourse(String email, String courseId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.USER_NOT_FOUND));
 
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException("Course not found with ID: " + courseId);
@@ -243,7 +243,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     @Cacheable(value = "enrolledCourses", key = "#email")
     public List<CourseResponse> getEnrolledCourses(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.USER_NOT_FOUND));
 
         if (user.getEnrolledCourseIds() == null || user.getEnrolledCourseIds().isEmpty()) {
             return new java.util.ArrayList<>();
@@ -254,23 +254,23 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     }
 
     private List<CourseResponse> mapToCourseResponseList(List<Course> courses) {
-        java.util.Set<Long> instructorIds = courses.stream()
-                .map(Course::getInstructorId)
+        java.util.Set<Long> createdBys = courses.stream()
+                .map(Course::getCreatedBy)
                 .filter(java.util.Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        java.util.Map<Long, String> instructorNames = userRepository.findAllById(instructorIds).stream()
+        java.util.Map<Long, String> creatorNames = userRepository.findAllById(createdBys).stream()
                 .collect(Collectors.toMap(User::getId, User::getUsername));
 
         return courses.stream()
                 .map(c -> {
-                    String instructorName = instructorNames.getOrDefault(c.getInstructorId(), "Academy Instructor");
-                    return mapToCourseResponseLightWithInstructor(c, instructorName);
+                    String creatorName = creatorNames.getOrDefault(c.getCreatedBy(), "Academy Instructor");
+                    return mapToCourseResponseLightWithInstructor(c, creatorName);
                 })
                 .collect(Collectors.toList());
     }
 
-    private CourseResponse mapToCourseResponseLightWithInstructor(Course course, String instructorName) {
+    private CourseResponse mapToCourseResponseLightWithInstructor(Course course, String creatorName) {
         return CourseResponse.builder()
                 .courseId(course.getCourseId())
                 .title(course.getTitle())
@@ -280,8 +280,8 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .category(course.getCategory() != null ? course.getCategory() : "General")
                 .imageUrl(course.getImageUrl())
                 .tags(course.getTags() != null ? course.getTags() : new java.util.ArrayList<>())
-                .instructorName(instructorName)
-                .instructorId(course.getInstructorId())
+                .creatorName(creatorName)
+                .createdBy(course.getCreatedBy())
                 .createdAt(course.getCreatedAt())
                 .build();
     }
@@ -289,7 +289,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     @CacheEvict(value = "courseProgress", key = "#courseId + '-' + #email")
     public void markItemComplete(String email, String courseId, String moduleId, Integer itemOrder, String type) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.USER_NOT_FOUND));
         Long userId = user.getId();
 
         if ("PROBLEM".equalsIgnoreCase(type)) {
@@ -327,7 +327,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     @Cacheable(value = "courseProgress", key = "#courseId + '-' + #email")
     public java.util.Set<String> getUserCourseProgress(String email, String courseId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.USER_NOT_FOUND));
         Long userId = user.getId();
 
         return progressRepository.findByUserIdAndCourseId(userId, courseId).stream()
@@ -367,7 +367,7 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 }
             }
         }
-        throw new ResourceNotFoundException("Module not found");
+        throw new ResourceNotFoundException(com.robolearn.core.exception.ErrorMessages.MODULE_NOT_FOUND);
     }
 
     private java.util.Set<String> extractImageUrls(List<Module.CurriculumItem> items) {
@@ -387,9 +387,9 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
     }
 
     private CourseResponse mapToCourseResponse(Course course) {
-        String instructorName = "Academy Instructor";
-        if (course.getInstructorId() != null) {
-            instructorName = userRepository.findById(course.getInstructorId())
+        String creatorName = "Academy Instructor";
+        if (course.getCreatedBy() != null) {
+            creatorName = userRepository.findById(course.getCreatedBy())
                     .map(User::getUsername)
                     .orElse("Academy Instructor");
         }
@@ -407,17 +407,17 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .category(course.getCategory() != null ? course.getCategory() : "General")
                 .imageUrl(course.getImageUrl())
                 .tags(course.getTags() != null ? course.getTags() : new java.util.ArrayList<>())
-                .instructorName(instructorName)
-                .instructorId(course.getInstructorId())
+                .creatorName(creatorName)
+                .createdBy(course.getCreatedBy())
                 .createdAt(course.getCreatedAt())
                 .modules(modules)
                 .build();
     }
 
     private CourseResponse mapToCourseResponseLight(Course course) {
-        String instructorName = "Academy Instructor";
-        if (course.getInstructorId() != null) {
-            instructorName = userRepository.findById(course.getInstructorId())
+        String creatorName = "Academy Instructor";
+        if (course.getCreatedBy() != null) {
+            creatorName = userRepository.findById(course.getCreatedBy())
                     .map(User::getUsername)
                     .orElse("Academy Instructor");
         }
@@ -431,8 +431,8 @@ public class CourseServiceImpl implements com.robolearn.course.service.CourseSer
                 .category(course.getCategory() != null ? course.getCategory() : "General")
                 .imageUrl(course.getImageUrl())
                 .tags(course.getTags() != null ? course.getTags() : new java.util.ArrayList<>())
-                .instructorName(instructorName)
-                .instructorId(course.getInstructorId())
+                .creatorName(creatorName)
+                .createdBy(course.getCreatedBy())
                 .createdAt(course.getCreatedAt())
                 .build();
     }
