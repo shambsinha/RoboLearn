@@ -23,6 +23,7 @@ public class AdminDashboardController {
 
     @GetMapping("/metrics")
     public ResponseEntity<AdminDashboardResponse> getDashboardMetrics() {
+        log.info("Executing getDashboardMetrics");
         try {
             return ResponseEntity.ok(dashboardService.getAdminMetrics());
         } catch (Exception e) {

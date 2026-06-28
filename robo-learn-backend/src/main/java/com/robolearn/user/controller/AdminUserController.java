@@ -14,22 +14,26 @@ import java.util.List;
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('USER_MANAGE')")
+@lombok.extern.slf4j.Slf4j
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
 
     @GetMapping
     public ResponseEntity<List<AdminUserResponse>> getAllUsers() {
+        log.info("Executing getAllUsers");
         return ResponseEntity.ok(adminUserService.getAllUsers());
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable Long userId) {
+        log.info("Executing getUserProfile with userId={}", userId);
         return ResponseEntity.ok(adminUserService.getUserProfile(userId));
     }
 
     @PutMapping("/{userId}/suspend")
     public ResponseEntity<AdminUserResponse> toggleSuspendStatus(@PathVariable Long userId) {
+        log.info("Executing toggleSuspendStatus with userId={}", userId);
         return ResponseEntity.ok(adminUserService.toggleSuspendStatus(userId));
     }
 }

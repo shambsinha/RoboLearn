@@ -24,6 +24,7 @@ public class StudentDashboardController {
 
     @GetMapping("/metrics")
     public ResponseEntity<StudentDashboardResponse> getDashboardMetrics() {
+        log.info("Executing getDashboardMetrics");
         try {
             String email = SecurityContextHolder.getContext().getAuthentication().getName();
             return ResponseEntity.ok(dashboardService.getStudentMetrics(email));

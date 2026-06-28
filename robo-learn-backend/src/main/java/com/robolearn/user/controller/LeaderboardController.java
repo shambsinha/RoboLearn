@@ -16,12 +16,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/leaderboard")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class LeaderboardController {
 
     private final UserRepository userRepository;
 
     @GetMapping
     public ResponseEntity<List<LeaderboardResponse>> getLeaderboard() {
+        log.info("Executing getLeaderboard");
         List<User> topUsers = userRepository.findTop20ByOrderByXpDesc();
         
         AtomicInteger rank = new AtomicInteger(1);

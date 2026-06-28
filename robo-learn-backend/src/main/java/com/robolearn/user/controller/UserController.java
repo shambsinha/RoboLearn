@@ -17,6 +17,7 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -24,6 +25,7 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfileResponse> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Executing getProfile with userDetails={}", userDetails);
         return ResponseEntity.ok(userService.getUserProfile(userDetails.getUsername()));
     }
 
@@ -31,6 +33,7 @@ public class UserController {
     public ResponseEntity<UserProfileResponse> updateProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UpdateProfileRequest request) {
+        log.info("Executing updateProfile with userDetails={}", userDetails);
         return ResponseEntity.ok(userService.updateProfile(userDetails.getUsername(), request));
     }
 
@@ -38,6 +41,7 @@ public class UserController {
     public ResponseEntity<?> changePassword(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody ChangePasswordRequest request) {
+        log.info("Executing changePassword with userDetails={}", userDetails);
         try {
             userService.changePassword(userDetails.getUsername(), request);
             return ResponseEntity.ok().build();
@@ -48,6 +52,7 @@ public class UserController {
 
     @PostMapping("/profile/request-set-password-otp")
     public ResponseEntity<?> requestSetPasswordOtp(@AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Executing requestSetPasswordOtp with userDetails={}", userDetails);
         userService.requestProfileOtp(userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
@@ -56,6 +61,7 @@ public class UserController {
     public ResponseEntity<?> setPassword(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody SetPasswordRequest request) {
+        log.info("Executing setPassword with userDetails={}", userDetails);
         try {
             userService.setPassword(userDetails.getUsername(), request);
             return ResponseEntity.ok().build();
@@ -68,6 +74,7 @@ public class UserController {
     public ResponseEntity<UserProfileResponse> uploadProfileImage(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam("image") MultipartFile file) {
+        log.info("Executing uploadProfileImage with userDetails={}", userDetails);
         try {
             // Get current profile to check if there is an existing image
             UserProfileResponse currentProfile = userService.getUserProfile(userDetails.getUsername());
@@ -87,6 +94,7 @@ public class UserController {
     @DeleteMapping("/profile/image")
     public ResponseEntity<UserProfileResponse> deleteProfileImage(
             @AuthenticationPrincipal UserDetails userDetails) {
+        log.info("Executing deleteProfileImage with userDetails={}", userDetails);
         UserProfileResponse currentProfile = userService.getUserProfile(userDetails.getUsername());
         if (currentProfile.getProfilePictureUrl() != null && !currentProfile.getProfilePictureUrl().isEmpty()) {
             cloudinaryService.deleteImageByUrl(currentProfile.getProfilePictureUrl());

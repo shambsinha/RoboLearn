@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/student/arena")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('PROBLEM_READ')")
+@lombok.extern.slf4j.Slf4j
 public class StudentArenaController {
 
     private final ProblemService problemService;
@@ -27,6 +28,7 @@ public class StudentArenaController {
 
     @GetMapping("/problems")
     public ResponseEntity<List<ProblemResponse>> getAllProblems() {
+        log.info("Executing getAllProblems");
         List<ProblemResponse> problems = problemService.getAllProblems();
         // Strictly exclude test case details from the list for security/fairness
         problems.forEach(p -> p.setTestCases(null));
@@ -35,6 +37,7 @@ public class StudentArenaController {
 
     @GetMapping("/problems/{id}")
     public ResponseEntity<ProblemResponse> getProblemById(@PathVariable Long id) {
+        log.info("Executing getProblemById with id={}", id);
         ProblemResponse problem = problemService.getProblemById(id);
         // Exclude hidden test cases and mask expected output of visible ones if needed
         // For now, only show non-hidden test cases and only their inputs
@@ -54,6 +57,7 @@ public class StudentArenaController {
 
     @PostMapping("/submit")
     public ResponseEntity<String> submitCode(@Valid @RequestBody CodeSubmissionRequest request) {
+        log.info("Executing submitCode");
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         String submissionId = submissionService.submitCode(email, request);
         return ResponseEntity.accepted().body(submissionId);
@@ -61,11 +65,13 @@ public class StudentArenaController {
 
     @GetMapping("/submissions/{submissionId}")
     public ResponseEntity<SubmissionResponse> getSubmissionStatus(@PathVariable String submissionId) {
+        log.info("Executing getSubmissionStatus with submissionId={}", submissionId);
         return ResponseEntity.ok(submissionService.getSubmissionStatus(submissionId));
     }
 
     @GetMapping("/problems/{problemId}/submissions")
     public ResponseEntity<List<SubmissionResponse>> getProblemSubmissions(@PathVariable Long problemId) {
+        log.info("Executing getProblemSubmissions with problemId={}", problemId);
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(submissionService.getProblemSubmissions(email, problemId));
     }

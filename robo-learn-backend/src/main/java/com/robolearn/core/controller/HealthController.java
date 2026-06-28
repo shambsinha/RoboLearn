@@ -14,6 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/public/health")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class HealthController {
 
     private final UserRepository userRepository;
@@ -21,6 +22,7 @@ public class HealthController {
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> checkHealth() {
+        log.info("Executing checkHealth");
         Map<String, Object> status = new HashMap<>();
         status.put("status", "UP");
         status.put("timestamp", System.currentTimeMillis());

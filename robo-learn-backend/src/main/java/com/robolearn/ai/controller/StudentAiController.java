@@ -17,24 +17,28 @@ import java.util.Map;
 @RequestMapping("/api/student/ai")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('ROLE_STUDENT')")
+@lombok.extern.slf4j.Slf4j
 public class StudentAiController {
 
     private final AiAgentService aiAgentService;
 
     @PostMapping("/path")
     public ResponseEntity<AiToDoList> generatePath(@Valid @RequestBody AiPathRequest request) {
+        log.info("Executing generatePath");
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(aiAgentService.generateLearningPath(email, request));
     }
 
     @GetMapping("/paths")
     public ResponseEntity<List<AiToDoList>> getMyPaths() {
+        log.info("Executing getMyPaths");
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(aiAgentService.getUserPaths(email));
     }
 
     @PostMapping("/chat")
     public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request) {
+        log.info("Executing chat with request");
         String response = aiAgentService.chat(request.get("message"));
         return ResponseEntity.ok(Map.of("response", response));
     }

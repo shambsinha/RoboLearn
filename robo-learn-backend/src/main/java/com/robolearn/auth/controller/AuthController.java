@@ -20,24 +20,28 @@ import org.springframework.http.ResponseCookie;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
+        log.info("Executing register");
         AuthResponse response = authService.register(request);
         return buildSecureResponse(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        log.info("Executing login");
         AuthResponse response = authService.login(request);
         return buildSecureResponse(response);
     }
 
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
+        log.info("Executing googleLogin");
         AuthResponse response = authService.loginWithGoogle(request);
         return buildSecureResponse(response);
     }
@@ -71,23 +75,27 @@ public class AuthController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<String> sendOtp(@RequestParam String email) {
+        log.info("Executing sendOtp with email={}", email);
         authService.sendOtp(email);
         return ResponseEntity.ok("OTP sent successfully to " + email);
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<Boolean> verifyOtp(@RequestParam String email, @RequestParam String otp) {
+        log.info("Executing verifyOtp with email={}, otp={}", email, otp);
         boolean isValid = authService.verifyOtp(email, otp);
         return ResponseEntity.ok(isValid);
     }
 
     @GetMapping("/check-username")
     public ResponseEntity<Boolean> checkUsername(@RequestParam String username) {
+        log.info("Executing checkUsername with username={}", username);
         return ResponseEntity.ok(authService.checkUsernameAvailability(username));
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        log.info("Executing forgotPassword with email={}", email);
         try {
             authService.sendResetPasswordOtp(email);
             return ResponseEntity.ok("Reset OTP sent to " + email);
@@ -101,6 +109,7 @@ public class AuthController {
             @RequestParam String email,
             @RequestParam String otp,
             @RequestParam String newPassword) {
+        log.info("Executing resetPassword with email={}, otp={}, newPassword={}", email, otp, newPassword);
         try {
             authService.resetPassword(email, otp, newPassword);
             return ResponseEntity.ok("Password reset successfully");

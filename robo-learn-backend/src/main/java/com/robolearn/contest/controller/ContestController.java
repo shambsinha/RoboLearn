@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contests")
+@lombok.extern.slf4j.Slf4j
 public class ContestController {
 
     private final ContestService contestService;
@@ -35,6 +36,7 @@ public class ContestController {
     public ResponseEntity<ContestResponse> createContest(
             @RequestBody ContestRequest request,
             Principal principal) {
+        log.info("Executing createContest");
         Long userId = getUserId(principal);
         ContestResponse response = contestService.createContest(request, userId);
         return ResponseEntity.ok(response);
@@ -42,6 +44,7 @@ public class ContestController {
 
     @GetMapping
     public ResponseEntity<List<ContestResponse>> getAllContests(Principal principal) {
+        log.info("Executing getAllContests");
         Long userId = getUserId(principal);
         List<ContestResponse> responses = contestService.getAllContests(userId);
         return ResponseEntity.ok(responses);
@@ -51,6 +54,7 @@ public class ContestController {
     public ResponseEntity<ContestResponse> getContestById(
             @PathVariable String id,
             Principal principal) {
+        log.info("Executing getContestById with id={}", id);
         Long userId = getUserId(principal);
         ContestResponse response = contestService.getContestById(id, userId);
         return ResponseEntity.ok(response);
@@ -60,6 +64,7 @@ public class ContestController {
     public ResponseEntity<ContestResponse> enrollInContest(
             @PathVariable String id,
             Principal principal) {
+        log.info("Executing enrollInContest with id={}", id);
         Long userId = getUserId(principal);
         ContestResponse response = contestService.enroll(id, userId);
         return ResponseEntity.ok(response);
