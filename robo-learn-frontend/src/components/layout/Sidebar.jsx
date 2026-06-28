@@ -27,6 +27,13 @@ const Sidebar = ({ role }) => {
     { name: 'Profile',      path: '/student/profile',      icon: User },
   ];
 
+  const instructorLinks = [
+    { name: 'Dashboard', path: '/instructor/overview', icon: LayoutDashboard },
+    { name: 'My Courses', path: '/instructor/courses', icon: FolderEdit },
+    { name: 'Problems',  path: '/instructor/problems', icon: Database },
+    { name: 'Profile',   path: '/instructor/profile',  icon: User },
+  ];
+
   const adminLinks = [
     { name: 'Overview', path: '/admin/overview', icon: LayoutDashboard },
     { name: 'Courses',  path: '/admin/courses',  icon: FolderEdit },
@@ -35,7 +42,9 @@ const Sidebar = ({ role }) => {
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];
 
-  const links = role === 'ADMIN' ? adminLinks : studentLinks;
+  let links = studentLinks;
+  if (role === 'ADMIN') links = adminLinks;
+  else if (role === 'INSTRUCTOR') links = instructorLinks;
 
   return (
     <aside className="w-56 fixed top-14 bottom-0 left-0 z-40 glass-strong border-r border-white/[0.05] flex flex-col hidden lg:flex">

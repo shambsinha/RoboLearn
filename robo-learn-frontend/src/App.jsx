@@ -26,6 +26,7 @@ const ProblemBank      = lazy(() => import('./pages/admin/ProblemBank'));
 const ProblemBuilder   = lazy(() => import('./pages/admin/ProblemBuilder'));
 const StudentList      = lazy(() => import('./pages/admin/StudentList'));
 const CourseDetail     = lazy(() => import('./pages/admin/CourseDetail'));
+const InstructorDashboard = lazy(() => import('./pages/instructor/InstructorDashboard'));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const AiTutor          = lazy(() => import('./pages/student/AiTutor'));
 const CourseCatalog    = lazy(() => import('./pages/student/CourseCatalog'));
@@ -81,7 +82,7 @@ function App() {
 
       {/* Ambient lighting now handled by Canvas neural environment */}
 
-      // ── Application shell (z-10 above canvas) ──
+      {/* ── Application shell (z-10 above canvas) ── */}
             <div className="relative z-10">
               <Router>
                 <Suspense fallback={<RouteLoading />}>
@@ -118,6 +119,19 @@ function App() {
                   <Route path="problems/builder"  element={<ProblemBuilder />} />
                   <Route path="users"             element={<StudentList />} />
                   <Route path="settings"          element={<PlaceholderPage title="System Settings" desc="Configure global platform parameters." />} />
+                </Route>
+              </Route>
+
+              {/* Instructor */}
+              <Route element={<ProtectedRoute allowedRoles={['INSTRUCTOR']} />}>
+                <Route path="/instructor" element={<AdminLayout />}>
+                  <Route index                    element={<Navigate to="overview" replace />} />
+                  <Route path="overview"          element={<InstructorDashboard />} />
+                  <Route path="courses"           element={<CourseManager />} />
+                  <Route path="courses/:courseId"  element={<CourseDetail />} />
+                  <Route path="problems"          element={<ProblemBank />} />
+                  <Route path="problems/builder"  element={<ProblemBuilder />} />
+                  <Route path="profile"           element={<UserProfile />} />
                 </Route>
               </Route>
 

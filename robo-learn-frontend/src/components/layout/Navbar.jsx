@@ -55,8 +55,22 @@ const Navbar = () => {
     { name: 'Users',    path: '/admin/users',    icon: Users },
   ];
 
-  const links = user?.role === 'ADMIN' ? adminLinks : studentLinks;
-  const home  = user?.role === 'ADMIN' ? '/admin' : '/student';
+  const instructorLinks = [
+    { name: 'Dashboard', path: '/instructor/overview', icon: LayoutDashboard },
+    { name: 'My Courses', path: '/instructor/courses', icon: FolderEdit },
+    { name: 'Problems',  path: '/instructor/problems', icon: Database },
+  ];
+
+  let links = studentLinks;
+  let home = '/student';
+
+  if (user?.role === 'ADMIN') {
+    links = adminLinks;
+    home = '/admin';
+  } else if (user?.role === 'INSTRUCTOR') {
+    links = instructorLinks;
+    home = '/instructor';
+  }
 
   return (
     <header
@@ -168,7 +182,12 @@ const Navbar = () => {
               </div>
 
               <div className="py-1">
-                <DropLink to={user?.role === 'ADMIN' ? '/admin/settings' : '/student/profile'} icon={User} label="My Profile" onClick={() => setIsDropdownOpen(false)} />
+                <DropLink 
+                  to={user?.role === 'ADMIN' ? '/admin/settings' : user?.role === 'INSTRUCTOR' ? '/instructor/profile' : '/student/profile'} 
+                  icon={User} 
+                  label="My Profile" 
+                  onClick={() => setIsDropdownOpen(false)} 
+                />
                 <DropLink to="#" icon={Settings} label="Account Settings" onClick={() => setIsDropdownOpen(false)} />
                 {user?.role === 'STUDENT' && (
                   <DropLink to="#" icon={CreditCard} label="Billing" onClick={() => setIsDropdownOpen(false)} />
