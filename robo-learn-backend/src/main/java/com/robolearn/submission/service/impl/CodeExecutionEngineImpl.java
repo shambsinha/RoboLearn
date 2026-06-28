@@ -104,6 +104,28 @@ public class CodeExecutionEngineImpl implements com.robolearn.submission.service
             }
         } else if ("cpp".equals(lang) || "c++".equals(lang)) {
             Files.writeString(workspace.resolve("main.cpp"), submission.getCode());
+        } else if ("sql".equals(lang)) {
+            String schema = driverCode != null ? driverCode : "";
+            Files.writeString(workspace.resolve("schema.sql"), schema);
+            Files.writeString(workspace.resolve("query.sql"), submission.getCode());
+            
+            String pyRunner = 
+                "import sqlite3, sys, csv\n" +
+                "try:\n" +
+                "    conn = sqlite3.connect(':memory:')\n" +
+                "    with open('schema.sql', 'r') as f: conn.executescript(f.read())\n" +
+                "    with open('query.sql', 'r') as f: query = f.read()\n" +
+                "    cur = conn.cursor()\n" +
+                "    cur.execute(query)\n" +
+                "    rows = cur.fetchall()\n" +
+                "    if rows:\n" +
+                "        writer = csv.writer(sys.stdout, lineterminator='\\n')\n" +
+                "        writer.writerows(rows)\n" +
+                "    conn.close()\n" +
+                "except Exception as e:\n" +
+                "    sys.stderr.write(str(e))\n" +
+                "    sys.exit(1)\n";
+            Files.writeString(workspace.resolve("runner.py"), pyRunner);
         }
 
         // Setup IO
@@ -149,6 +171,8 @@ public class CodeExecutionEngineImpl implements com.robolearn.submission.service
             baseCmd = new String[]{"java", "-cp", ".", className};
         } else if ("cpp".equals(lang) || "c++".equals(lang)) {
             baseCmd = new String[]{isWin ? "main.exe" : "./main"};
+        } else if ("sql".equals(lang)) {
+            baseCmd = new String[]{isWin ? "python" : "python3", "runner.py"};
         } else {
             baseCmd = new String[]{"echo", "Error"};
         }

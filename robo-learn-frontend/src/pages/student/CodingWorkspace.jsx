@@ -30,7 +30,8 @@ import SockJS from 'sockjs-client';
 const BOILERPLATE = {
   java: `public class Main {\n    public static void main(String[] args) {\n        // Write your solution here\n        System.out.println("Hello, RoboLearn!");\n    }\n}`,
   python: `# Write your solution here\nprint("Hello, RoboLearn!")`,
-  cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your solution here\n    cout << "Hello, RoboLearn!" << endl;\n    return 0;\n}`
+  cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    // Write your solution here\n    cout << "Hello, RoboLearn!" << endl;\n    return 0;\n}`,
+  sql: `-- Write your SQL query here\nSELECT * FROM table_name;`
 };
 
 const CodingWorkspace = () => {
