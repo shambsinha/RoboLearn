@@ -29,6 +29,7 @@ const CourseDetail     = lazy(() => import('./pages/admin/CourseDetail'));
 const InstructorDashboard = lazy(() => import('./pages/instructor/InstructorDashboard'));
 const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
 const AiTutor          = lazy(() => import('./pages/student/AiTutor'));
+const ContestsPage     = lazy(() => import('./pages/student/ContestsPage'));
 const CourseCatalog    = lazy(() => import('./pages/student/CourseCatalog'));
 const ArenaCatalog     = lazy(() => import('./pages/student/ArenaCatalog'));
 const CodingWorkspace  = lazy(() => import('./pages/student/CodingWorkspace'));
@@ -100,7 +101,7 @@ function App() {
                   <Route path="courses/:courseId"   element={<CourseViewer />} />
                   <Route path="problems"           element={<ArenaCatalog />} />
                   <Route path="problems/:problemId" element={<CodingWorkspace />} />
-                  <Route path="contests"           element={<PlaceholderPage title="Contests"     desc="Weekly coding challenges and tournaments." />} />
+                  <Route path="contests"           element={<ContestsPage />} />
                   <Route path="achievements"       element={<Achievements />} />
                   <Route path="leaderboard"        element={<Leaderboard />} />
                   <Route path="profile"            element={<UserProfile />} />
