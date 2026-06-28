@@ -15,8 +15,11 @@ import {
   Circle,
   AlertCircle,
   RefreshCw,
-  Clock3
+  Clock3,
+  Bot,
+  Sparkles
 } from 'lucide-react';
+import { studentApi } from '../../api/studentApi';
 import { arenaApi } from '../../api/arenaApi';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -50,6 +53,8 @@ const CodingWorkspace = () => {
   const [consoleTab, setConsoleTab] = useState('testcase'); // 'testcase' or 'result'
   const [selectedCaseIdx, setSelectedCaseIdx] = useState(0);
   const [wsConnected, setWsConnected] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const stompClientRef = useRef(null);
 
@@ -298,8 +303,8 @@ const CodingWorkspace = () => {
         {/* Left: Problem Details */}
         <div className="w-full lg:w-[42%] flex flex-col bg-zinc-950 border-r border-white/10 overflow-hidden">
           <div className="flex items-center border-b border-white/5 bg-zinc-900/30 shrink-0">
-            {['description', 'editorial', 'submissions'].map(t => (
-              <button key={t} onClick={() => setActiveTab(t)} className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === t ? 'border-indigo-500 text-zinc-100' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
+            {['description', 'editorial', 'submissions', 'ai-mentor'].map(t => (
+              <button key={t === 'ai-mentor' ? 'AI Mentor' : t} onClick={() => setActiveTab(t)} className={`px-6 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === t ? 'border-indigo-500 text-zinc-100' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}>
                 {t}
               </button>
             ))}
@@ -436,6 +441,47 @@ const CodingWorkspace = () => {
                     <p className="text-xs italic">No submissions yet. Solve this challenge!</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'ai-mentor' && (
+              <div className="p-6 animate-in fade-in duration-300">
+                <div className="prose prose-invert max-w-none text-gray-300">
+                  <div className="bg-gradient-to-r from-fuchsia-500/10 to-purple-500/10 border border-fuchsia-500/20 rounded-xl p-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10">
+                      <Bot className="w-24 h-24" />
+                    </div>
+                    <h3 className="text-xl font-bold text-fuchsia-400 flex items-center gap-2 mb-4">
+                      <Sparkles className="w-5 h-5" />
+                      AI Code Analysis
+                    </h3>
+                    
+                    {isAiLoading ? (
+                      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                        <div className="relative">
+                          <div className="absolute -inset-1 bg-gradient-to-r from-fuchsia-500 to-purple-500 rounded-full blur opacity-75 animate-pulse"></div>
+                          <Bot className="w-12 h-12 text-white relative animate-bounce" />
+                        </div>
+                        <p className="text-fuchsia-300 animate-pulse font-medium">Analyzing your code structure and complexity...</p>
+                      </div>
+                    ) : aiResponse ? (
+                      <div className="relative z-10 whitespace-pre-wrap leading-relaxed text-[15px]">
+                        {aiResponse}
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 z-10 relative">
+                        <p className="text-gray-400 mb-6">Want feedback on your code before submitting?</p>
+                        <button 
+                          onClick={handleAiReview}
+                          className="bg-fuchsia-500 hover:bg-fuchsia-600 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-[0_0_15px_rgba(217,70,239,0.3)] hover:shadow-[0_0_25px_rgba(217,70,239,0.5)] flex items-center gap-2 mx-auto"
+                        >
+                          <Sparkles className="w-4 h-4" />
+                          Analyze My Code
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
