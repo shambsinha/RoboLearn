@@ -63,8 +63,7 @@ public class AuthController {
                 .sameSite("None")
                 .build();
 
-        // Clear tokens from JSON body for full security
-        response.setToken(null);
+        // Clear session token from JSON body for full security, keep access token
         response.setSessionToken(null);
 
         return ResponseEntity.ok()
