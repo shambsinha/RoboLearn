@@ -65,5 +65,5 @@ The platform implements a production-grade **Role-Based Access Control (RBAC)** 
 ---
 
 ## 👤 Author
-**Aayush Sinha**
+**Shamb**
 *   Full-Stack Engineer specialized in High-Performance Backend Systems.
